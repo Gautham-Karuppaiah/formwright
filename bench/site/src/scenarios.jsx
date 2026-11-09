@@ -1,14 +1,14 @@
 // The scenarios. Each is one job application; bench/expected.yaml says what a correct fill looks like.
 import React, { useState } from "react";
-import { COUNTRIES, STATES, CITIES, PINS, MONTHS, YEARS } from "./data";
-import { delay, useForm, validate } from "./store";
+import { COUNTRIES, STATES, CITIES, PINS, MONTHS, YEARS, LANGUAGES, PROFICIENCY } from "./data";
+import { useKept, delay, useForm, validate } from "./store";
 import { Check, DateP, Down, File, Headless, HiddenCheck, MuiAuto, MuiSel, NativeSelect, Radios, RAsync, RSelect, Split, Text } from "./widgets";
 
 const COUNTRY_NAMES = COUNTRIES.map((c) => c[0]);
 
-function Actions({ required, last, onNext }) {
+export function Actions({ required, last, onNext }) {
   const { fields, meta, setMeta } = useForm();
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useKept("Actions.busy", false);
   const go = async () => {
     const errors = validate(fields, required);
     setMeta((m) => ({ ...m, errors }));
@@ -31,7 +31,7 @@ function Actions({ required, last, onNext }) {
   );
 }
 
-function Shell({ steps, children }) {
+export function Shell({ steps, children }) {
   const { meta } = useForm();
   if (meta.submitted) return <div className="done"><h2>Thank you for applying!</h2><p>Your application has been submitted.</p></div>;
   return (
@@ -190,7 +190,7 @@ const missingIn = (e) => ["title", "company", "start_month", "start_year"].filte
 export function Experience() {
   const { fields, set, meta, setMeta } = useForm();
   const list = fields.experience || [];
-  const [editing, setEditing] = useState(null);       // entry id, or "new"
+  const [editing, setEditing] = useKept("Experience.editing", null);       // entry id, or "new"
   const save = (e) => {
     set("experience", (l) => (e.id && (l || []).some((x) => x.id === e.id)
       ? l.map((x) => (x.id === e.id ? e : x)) : [...(l || []), { ...e, id: Date.now() }]));
@@ -226,10 +226,10 @@ export function Experience() {
   );
 }
 
-function EntryForm({ init, onSave, onCancel }) {
-  const [e, setE] = useState({ title: "", company: "", location: "", start_month: "", start_year: "", end_month: "",
+export function EntryForm({ init, onSave, onCancel, check }) {
+  const [e, setE] = useKept("EntryForm.e", { title: "", company: "", location: "", start_month: "", start_year: "", end_month: "",
     end_year: "", current: false, ...init });
-  const [err, setErr] = useState(null);
+  const [err, setErr] = useKept("EntryForm.err", null);
   const f = (k) => ({ id: `exp-${k}`, value: e[k], onChange: (ev) => setE({ ...e, [k]: ev.target.value }) });
   const sel = (k, label, opts) => (
     <div className="row"><label htmlFor={`exp-${k}`}>{label}</label>
@@ -247,13 +247,80 @@ function EntryForm({ init, onSave, onCancel }) {
       {err && <div className="err" role="alert">{err}</div>}
       <button type="button" className="primary" onClick={() => {
         const m = missingIn(e);
-        if (m.length) setErr(`Required: ${m.join(", ")}`); else onSave(e);
+        const bad = !m.length && check ? check(e) : null;
+        if (m.length) setErr(`Required: ${m.join(", ")}`); else if (bad) setErr(bad); else onSave(e);
       }}>Save</button>
       <button type="button" onClick={onCancel}>Cancel</button>
     </div>
   );
 }
 export const EXPERIENCE_INITIAL = { experience: IMPORTED };
+
+// ---------- languages: a list of entries where every entry has the same labels ----------
+// One entry is already saved (as after an earlier attempt). The Language list leaves out languages already saved,
+// as Oracle's does, so the earlier entry's answer is not even an option in the next one.
+const LANG_SAVED = [{ id: 1, language: "English", reading: PROFICIENCY[4], writing: PROFICIENCY[4], speaking: PROFICIENCY[4] }];
+const LANG_PARTS = ["reading", "writing", "speaking"];
+
+export function Languages() {
+  const { fields, set, meta, setMeta } = useForm();
+  const list = fields.languages || [];
+  const [adding, setAdding] = useKept("Languages.adding", false);
+  return (
+    <Shell>
+      <h3>Languages</h3>
+      {list.map((e) => (
+        <div key={e.id} className="card">
+          <div className="card-title">{e.language}</div>
+          <div>Reading: {e.reading} · Writing: {e.writing} · Speaking: {e.speaking}</div>
+          <div className="card-actions">
+            <button type="button" onClick={() => set("languages", (l) => l.filter((x) => x.id !== e.id))}>Remove</button>
+          </div>
+        </div>
+      ))}
+      {adding
+        ? <LangForm used={list.map((e) => e.language)} onCancel={() => setAdding(false)}
+            onSave={(e) => { set("languages", (l) => [...(l || []), { ...e, id: Date.now() }]); setAdding(false); }} />
+        : <button type="button" onClick={() => setAdding(true)}>+ Add Language</button>}
+      <div className="actions">
+        {meta.errors.length > 0 && <div className="summary" role="alert">Save or cancel the open language entry.</div>}
+        <button type="button" className="primary" onClick={() => {
+          const errors = adding ? ["languages"] : [];
+          setMeta((m) => ({ ...m, errors, submitted: !errors.length }));
+        }}>Submit application</button>
+      </div>
+    </Shell>
+  );
+}
+
+function LangForm({ used, onSave, onCancel }) {
+  const [e, setE] = useKept("LangForm.e", { language: "", reading: "", writing: "", speaking: "" });
+  const [err, setErr] = useKept("LangForm.err", null);
+  const opts = LANGUAGES.filter((l) => !used.includes(l)).map((l) => ({ value: l, label: l }));
+  return (
+    <div className="entry" role="group" aria-label="Language entry">
+      <div className="row"><label htmlFor="lang-language">Language *</label>
+        <Select inputId="lang-language" instanceId="lang-language" classNamePrefix="rs" options={opts}
+          value={e.language ? { value: e.language, label: e.language } : null}
+          onChange={(o) => setE({ ...e, language: o?.value ?? "" })} /></div>
+      {LANG_PARTS.map((k) => (
+        <fieldset key={k} className="row"><legend>{k[0].toUpperCase() + k.slice(1)} *</legend>
+          {PROFICIENCY.map((p) => (
+            <label key={p} className="inline"><input type="radio" name={`lang-${k}`} checked={e[k] === p}
+              onChange={() => setE({ ...e, [k]: p })} /> {p}</label>
+          ))}
+        </fieldset>
+      ))}
+      {err && <div className="err" role="alert">{err}</div>}
+      <button type="button" className="primary" onClick={() => {
+        const m = ["language", ...LANG_PARTS].filter((k) => !e[k]);
+        if (m.length) setErr(`Required: ${m.join(", ")}`); else onSave(e);
+      }}>Save</button>
+      <button type="button" onClick={onCancel}>Cancel</button>
+    </div>
+  );
+}
+export const LANGUAGES_INITIAL = { languages: LANG_SAVED };
 
 // ---------- wizard: three steps, errors after Next, a question that reveals another ----------
 export function Wizard() {

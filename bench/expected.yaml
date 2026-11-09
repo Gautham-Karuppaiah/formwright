@@ -36,7 +36,7 @@ widgets:
   preferred_location: Chennai
   start_date: {next_monday: true}
   graduation: "07/2026"
-  expected_ctc: {number: 6}
+  expected_ctc: {number: 5}
   languages: {set: [English, Hindi, Japanese]}
 
 address:
@@ -54,6 +54,13 @@ experience:
       - {title: Cyber-Security Intern, company: Riverbend Labs, start_month: June, start_year: "2025", end_month: August, end_year: "2025", current: false}
       - {title: ML Intern, company: Bluefin Analytics, start_month: June, start_year: "2024", end_month: August, end_year: "2024", current: false}
       - {title: Cloud Computing Intern, company: Kaveri Finance Services, start_month: August, start_year: "2024", end_month: August, end_year: "2024", current: false}
+
+languages:
+  languages:
+    entries:
+      - {language: English, reading: Native or Bilingual Proficiency, writing: Native or Bilingual Proficiency, speaking: Native or Bilingual Proficiency}
+      - {language: Hindi, reading: Native or Bilingual Proficiency, writing: Native or Bilingual Proficiency, speaking: Native or Bilingual Proficiency}
+      - {language: Japanese, reading: Elementary Proficiency, writing: Elementary Proficiency, speaking: Elementary Proficiency}
 
 wizard:
   _step: 3
@@ -76,3 +83,125 @@ wizard:
   w_relatives: "No"
   w_noncompete: "No"
   w_certify: true
+
+# ---- coverage pages (bench/COVERAGE.md, bench/site/src/scenarios2.jsx) ----
+oracle:
+  o_phone: "9000011122"
+  o_city: {value: "Chennai, Tamil Nadu"}
+  o_education:
+    entries:
+      - {degree: "Bachelor's degree", institution: {contains: Coromandel Institute}, year: "2026"}
+  o_available: {next_monday: true}
+
+workday:
+  _step: 2
+  wd_dob: {dict: {Month: "10", Day: "14", Year: "2003"}}
+  wd_auth: "Yes"
+  wd_relocate: true
+  wd_source: LinkedIn
+  wd_languages: {set: [English, Hindi, Japanese]}
+
+sap:
+  sap_first: Karthik
+  sap_last: Raman
+  sap_email: karthik.raman@example.com
+  sap_phone: {digits: "9000011122"}
+  sap_country: India
+  sap_privacy: true
+
+icims:
+  ic_first: Karthik
+  ic_last: Raman
+  ic_email: karthik.raman@example.com
+  ic_country: India
+  ic_resume: {suffix: ".pdf"}
+
+sections:
+  _step: 2
+  sx_first: Karthik
+  sx_email: karthik.raman@example.com
+  sx_city: Chennai
+  sx_cgpa: {number: 8.2}
+  sx_notice: {number: 0}
+  sx_linkedin: {contains: linkedin.com/in/karthik-raman-dev}
+  sx_github: {contains: github.com/karthik-raman-dev}
+  sx_relocate: true
+  sx_start: {next_monday: true}
+
+html:
+  h_portfolio: {contains: floorplan-counter}
+  h_university: "Coromandel Institute of Technology, Chennai Campus"
+  h_qual: "B.E. / B.Tech"
+  h_grad: "2026-07"
+  h_dob: "2003-10-14"
+  h_mobile: "9000011122"
+  h_nationality: Indian
+  h_address: {contains: Thoraipakkam}
+  h_years: {number: 0}
+  h_cities: {set: [Bengaluru, Chennai, Hyderabad, Pune]}
+  h_summary: {contains: Halcyon}
+  h_week: {next_monday_week: true}
+  h_slot: "10:00"
+  h_test: "2026-12-01T10:00"
+  h_files: {contains: ".pdf"}
+
+widgets2:
+  w2_notice: Immediate
+  w2_rank: {starts: [Chennai, Bengaluru]}
+  w2_remote: true
+  w2_english: "5"
+  w2_years: {number: 0}
+  w2_ctc: {range_has: 6}
+  w2_citizenship: India
+  w2_state: Tamil Nadu
+  w2_education:
+    entries:
+      - {level: {contains: "B.E"}, institution: {contains: Coromandel Institute}, year: "2026", score: {number: 8.2}}
+      - {level: {contains: "12"}, institution: {contains: Lakeview Public School}, year: "2022", score: {number: 78.4}}
+      - {level: {contains: "10"}, institution: {contains: Lakeview Public School}, year: "2020", score: {number: 91.6}}
+  w2_experience:
+    entries:
+      - {title: Software Developer Intern, company: Halcyon Byteworks, end_month: July, end_year: "2026", current: false}
+      - {title: Cyber-Security Intern, company: Riverbend Labs, end_month: August, end_year: "2025", current: false}
+  w2_declare: {dict: {"I consent to the privacy policy": "True", "I accept the terms of use": "True", "I consent to a background check": "True"}}
+
+groups:
+  cur_line1: "B-12, Lotus Residency"
+  cur_line2: "Rajiv Gandhi Salai, Thoraipakkam"
+  cur_city: Chennai
+  cur_pin: "600097"
+  perm_line1: "B-12, Lotus Residency"
+  perm_line2: "Rajiv Gandhi Salai, Thoraipakkam"
+  perm_city: Chennai
+  perm_pin: "600097"
+
+asks:
+  _end: needs_user
+  as_email: karthik.raman@example.com
+  as_degree: absent
+  as_aadhaar: absent
+
+refuse:
+  r_experience:
+    entries:
+      - {title: Software Developer Intern, company: Halcyon Byteworks, start_month: January, start_year: "2026", end_month: July, end_year: "2026", current: false}
+      - {title: Cyber-Security Intern, company: Riverbend Labs, start_month: June, start_year: "2025", end_month: August, end_year: "2025", current: false}
+      - {title: ML Intern, company: Bluefin Analytics, start_month: June, start_year: "2024", end_month: August, end_year: "2024", current: false}
+      - {title: Cloud Computing Intern, company: Kaveri Finance Services, start_month: August, start_year: "2024", end_month: September, end_year: "2024", current: false}
+
+applied:
+  _end: skipped
+
+# hidden native controls behind custom stand-ins (scenarios4.jsx)
+hidden:
+  first_name: Karthik
+  email: karthik.raman@example.com
+  resume: {suffix: ".pdf"}
+  qualification: "Bachelor's degree"
+  auth_india: "Yes"
+  linkedin: {contains: "linkedin.com/in/karthik-raman-dev"}
+
+dropzone:
+  first_name: Karthik
+  email: karthik.raman@example.com
+  resume: {suffix: ".pdf"}

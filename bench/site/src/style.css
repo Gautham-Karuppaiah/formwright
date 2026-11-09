@@ -41,3 +41,32 @@ button.primary { background: #b4442c; border-color: #b4442c; color: #fff; }
 .pair { display: flex; gap: 12px; }
 .pair .row { flex: 1; }
 .react-datepicker-wrapper input { width: 100%; box-sizing: border-box; }
+/* coverage pages (scenarios2.jsx) */
+.backdrop { position: fixed; inset: 0; background: #0006; display: flex; align-items: center; justify-content: center; z-index: 50; }
+.dialog { background: #fff; padding: 20px; border-radius: 8px; min-width: 320px; max-width: 90vw; }
+.grid-pop, .menu, .tree, .lbox { background: #fff; border: 1px solid #b9c0cc; border-radius: 5px; list-style: none; padding: 4px 0; margin: 2px 0; }
+.grid-pop [role=row] { display: flex; gap: 12px; padding: 5px 10px; cursor: pointer; }
+.grid-pop .hi, .lbox .hi, [role=option].hi { background: #eef1f6; }
+.menu-wrap { position: relative; }
+.menu li, .tree li, .lbox [role=option], .lbox li { padding: 5px 10px; cursor: pointer; }
+.tree ul { list-style: none; padding-left: 16px; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { background: #eef1f6; border-radius: 12px; padding: 2px 8px; }
+.switch { min-width: 56px; }
+.switch.on, .tab.on { background: #2a6; color: #fff; border-color: #2a6; }
+.fake-radio { border: 1px solid #b9c0cc; border-radius: 14px; padding: 4px 14px; cursor: pointer; }
+.fake-radio.on { background: #b4442c; color: #fff; }
+.spin { border: 1px solid #b9c0cc; border-radius: 5px; padding: 6px 10px; min-width: 40px; text-align: center; }
+.track { position: relative; height: 24px; background: linear-gradient(#ccd 0 0) center/100% 4px no-repeat; margin: 6px 10px; }
+.thumb { position: absolute; top: 2px; width: 20px; height: 20px; margin-left: -10px; border-radius: 50%; background: #b4442c; }
+.star { font-size: 24px; cursor: pointer; }
+.mixed { cursor: pointer; }
+.cookie-cover { position: fixed; inset: 0; background: #0004; z-index: 60; display: flex; align-items: flex-end; }
+.cookie { background: #fff; width: 100%; padding: 16px; }
+.fake-btn { display: inline-block; background: #b4442c; color: #fff; padding: 7px 14px; border-radius: 5px; cursor: pointer; margin-top: 20px; }
+.editable { border: 1px solid #b9c0cc; border-radius: 5px; min-height: 60px; padding: 7px 9px; }
+.drop { border: 2px dashed #b9c0cc; border-radius: 6px; padding: 16px; text-align: center; }
+.egrid { border-collapse: collapse; width: 100%; }
+.egrid th, .egrid td { border: 1px solid #d6dae2; padding: 4px 6px; text-align: left; }
+.tip { border: 0; background: none; padding: 0 4px; }
+.tooltip { background: #1d2330; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 13px; }

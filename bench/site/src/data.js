@@ -38,3 +38,12 @@ export const PINS = {
 export const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September",
   "October", "November", "December"];
 export const YEARS = Array.from({ length: 14 }, (_, i) => String(2014 + i));
+
+// A long language list like Oracle's: regional variants and look-alikes around each real answer.
+export const LANGUAGES = ["Abkhazian", "Afrikaans", "Arabic", "Bengali", "Chinese", "Creoles and pidgins, English based",
+  "Dutch", "English", "English (Australia)", "English (Canada)", "English (United Kingdom)", "English (United States)",
+  "English, Middle", "English, Old", "French", "German", "Gujarati", "Hindi", "Hindustani", "Italian", "Japanese",
+  "Japanese (Kansai)", "Kannada", "Korean", "Malayalam", "Marathi", "Portuguese", "Russian", "Spanish", "Tamil",
+  "Telugu", "Urdu"];
+export const PROFICIENCY = ["Elementary Proficiency", "Limited Working Proficiency", "Professional Working Proficiency",
+  "Full Professional Proficiency", "Native or Bilingual Proficiency"];

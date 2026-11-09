@@ -12,7 +12,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { Combobox, ComboboxInput, ComboboxOption, ComboboxOptions, Field as HField, Label as HLabel } from "@headlessui/react";
 import { useCombobox } from "downshift";
-import { useForm } from "./store";
+import { useKept, useForm } from "./store";
 
 export function Row({ id, label, required, error, children, labelFor = true }) {
   return (
@@ -84,7 +84,7 @@ export function Check({ k, label, required }) {
 // span inside the label toggles it, and the label's text holds a link that opens a dialog instead of ticking the box.
 export function HiddenCheck({ k, before, link, required }) {
   const { fields, set, meta } = useForm();
-  const [dialog, setDialog] = React.useState(false);
+  const [dialog, setDialog] = useKept(`HiddenCheck.dialog.${k}`, false);
   return (
     <div className={`row${meta.errors.includes(k) ? " bad" : ""}`}>
       <label className="inline" htmlFor={k}>
@@ -199,7 +199,7 @@ export function MuiSel({ k, label, required, options }) {
 
 export function Headless({ k, label, required, options }) {
   const { fields, set, meta } = useForm();
-  const [q, setQ] = useState("");
+  const [q, setQ] = useKept(`Headless.q.${k}`, "");
   const shown = q ? options.filter((o) => o.toLowerCase().includes(q.toLowerCase())) : options;
   return (
     <HField className={`row${meta.errors.includes(k) ? " bad" : ""}`}>
@@ -217,7 +217,7 @@ export function Headless({ k, label, required, options }) {
 
 export function Down({ k, label, required, options }) {
   const { fields, set, meta } = useForm();
-  const [items, setItems] = useState(options);
+  const [items, setItems] = useKept(`Down.items.${k}`, options);
   const cb = useCombobox({
     items, inputId: k, selectedItem: fields[k] || null,
     onInputValueChange: ({ inputValue }) => setItems(options.filter((o) => o.toLowerCase().includes((inputValue || "").toLowerCase()))),

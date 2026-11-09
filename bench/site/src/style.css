@@ -1,0 +1,43 @@
+body { font: 15px/1.45 system-ui, sans-serif; margin: 0; background: #f5f6f8; color: #1d2330; }
+.page { max-width: 720px; margin: 0 auto; padding: 24px 16px 80px; }
+header { margin-bottom: 20px; }
+.brand { font-weight: 700; color: #b4442c; }
+h1 { margin: 4px 0; }
+h3 { margin: 28px 0 10px; border-bottom: 1px solid #d6dae2; padding-bottom: 4px; }
+form, .entry, .card { background: #fff; }
+form { padding: 16px 20px; border-radius: 8px; box-shadow: 0 1px 3px #0002; }
+.row { margin: 12px 0; display: flex; flex-direction: column; gap: 4px; }
+fieldset.row { border: 0; padding: 0; }
+legend, label, .lbl { font-weight: 500; }
+label.inline { font-weight: 400; display: inline-flex; gap: 6px; margin-right: 14px; align-items: center; }
+input:not([type=checkbox]):not([type=radio]):not(.split), select, textarea { padding: 7px 9px; border: 1px solid #b9c0cc; border-radius: 5px; font: inherit; }
+.split { padding: 7px; margin-right: 6px; border: 1px solid #b9c0cc; border-radius: 5px; font: inherit; text-align: center; }
+textarea { min-height: 70px; }
+.req { color: #b4442c; }
+.err { color: #b4442c; font-size: 13px; }
+.bad input, .bad select { border-color: #b4442c; }
+.hint { color: #5d6575; font-size: 13px; }
+.actions { margin-top: 24px; }
+.summary { color: #b4442c; margin-bottom: 8px; }
+button { font: inherit; padding: 7px 14px; border-radius: 5px; border: 1px solid #b9c0cc; background: #fff; cursor: pointer; margin-right: 6px; }
+button.primary { background: #b4442c; border-color: #b4442c; color: #fff; }
+.steps { color: #5d6575; margin-bottom: 8px; }
+.done { background: #fff; padding: 40px; border-radius: 8px; text-align: center; }
+.hl-input { width: 100%; box-sizing: border-box; }
+.hl-options { background: #fff; border: 1px solid #b9c0cc; border-radius: 5px; list-style: none; padding: 4px 0; margin: 2px 0; width: var(--input-width); z-index: 20; }
+.hl-option { padding: 5px 10px; cursor: pointer; }
+.hl-option[data-focus] { background: #eef1f6; }
+.ds { display: flex; }
+.ds input { flex: 1; }
+.ds-menu { list-style: none; margin: 0; padding: 0; background: #fff; max-height: 220px; overflow: auto; }
+.ds-menu li { padding: 5px 10px; cursor: pointer; }
+.ds-menu li.hi { background: #eef1f6; }
+.card { border: 1px solid #d6dae2; border-radius: 6px; padding: 10px 12px; margin: 10px 0; position: relative; }
+.card.needs { border-color: #b4442c; }
+.card-title { font-weight: 600; }
+.card-actions { position: absolute; top: 8px; right: 8px; visibility: hidden; }
+.card:hover .card-actions, .card:focus-within .card-actions { visibility: visible; }
+.entry { border: 1px dashed #8892a3; border-radius: 6px; padding: 10px 12px; margin: 10px 0; }
+.pair { display: flex; gap: 12px; }
+.pair .row { flex: 1; }
+.react-datepicker-wrapper input { width: 100%; box-sizing: border-box; }

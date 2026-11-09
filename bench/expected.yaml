@@ -1,0 +1,78 @@
+# What a correct fill of each bench scenario looks like (bench/site). Values come from profile.yaml.
+# A plain value must match exactly (after trimming). Rules:
+#   {digits: "..."}      the digits in the value equal this
+#   {number: 6}          the value parses to this number
+#   {contains: "..."}    the value contains this (case-insensitive)
+#   {set: [...]}         a list with exactly these items, any order
+#   {value: "..."}       a picked option whose stored value is this
+#   {suffix: ".pdf"}     the value ends with this
+#   {next_monday: true}  dd/mm/yyyy of the Monday of next week ("earliest start: immediately" in profile.yaml)
+#   {entries: [...]}     list of entry cards; each listed entry must be there with these fields, and nothing else
+#   absent               the field is empty or missing (optional box left blank / not revealed)
+
+basics:
+  first_name: Karthik
+  middle_name: absent
+  last_name: Raman
+  email: karthik.raman@example.com
+  phone_code: "+91 India"
+  phone: {digits: "9000011122"}
+  gender: Male
+  dob: {dict: {Day: "14", Month: "10", Year: "2003"}}
+  qualification: "Bachelor's degree"
+  auth_india: "Yes"
+  sponsorship: "No"
+  resume: {suffix: ".pdf"}
+  cover_letter: absent
+  marketing: absent
+  consent: true
+
+widgets:
+  phone_country: "India (+91)"
+  years_experience: "Fresher / 0"
+  notice_period: Immediate
+  nationality: India
+  source: LinkedIn
+  preferred_location: Chennai
+  start_date: {next_monday: true}
+  graduation: "07/2026"
+  expected_ctc: {number: 6}
+  languages: {set: [English, Hindi, Japanese]}
+
+address:
+  address1: "B-12, Lotus Residency"
+  address2: "Rajiv Gandhi Salai, Thoraipakkam"
+  country: India
+  state: Tamil Nadu
+  city: {value: Chennai}
+  pincode: {value: "600097"}
+
+experience:
+  experience:
+    entries:
+      - {title: Software Developer Intern, company: Halcyon Byteworks, start_month: January, start_year: "2026", end_month: July, end_year: "2026", current: false}
+      - {title: Cyber-Security Intern, company: Riverbend Labs, start_month: June, start_year: "2025", end_month: August, end_year: "2025", current: false}
+      - {title: ML Intern, company: Bluefin Analytics, start_month: June, start_year: "2024", end_month: August, end_year: "2024", current: false}
+      - {title: Cloud Computing Intern, company: Kaveri Finance Services, start_month: August, start_year: "2024", end_month: August, end_year: "2024", current: false}
+
+wizard:
+  _step: 3
+  w_first: Karthik
+  w_last: Raman
+  w_email: karthik.raman@example.com
+  w_phone: {digits: "919000011122"}
+  address1: "B-12, Lotus Residency"
+  address2: "Rajiv Gandhi Salai, Thoraipakkam"
+  country: India
+  state: Tamil Nadu
+  city: {value: Chennai}
+  pincode: {value: "600097"}
+  w_university: {contains: Coromandel Institute}
+  w_cgpa: {number: 8.2}
+  w_student: "No"
+  w_referred: "No"
+  w_referrer: absent
+  w_worked_before: "No"
+  w_relatives: "No"
+  w_noncompete: "No"
+  w_certify: true

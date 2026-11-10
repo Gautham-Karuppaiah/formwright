@@ -1,0 +1,33 @@
+<!doctype html>
+<!-- T10: a custom type-to-search dropdown (open -> wait -> pick) and a Next button. The procedure must not need
+     extra planner calls. -->
+<html><head><meta charset="utf-8"><title>Step - Fixture Co</title>
+<style>#lb{border:1px solid #888;max-height:120px;overflow:auto;margin:0;padding:0;list-style:none}
+#lb li{padding:2px 6px;cursor:pointer}</style></head><body>
+<h2 id="h">Step 1</h2>
+<div id="form">
+  <label for="city">City</label>
+  <input id="city" role="combobox" aria-controls="lb" aria-expanded="false" aria-autocomplete="list" autocomplete="off">
+  <ul id="lb" role="listbox" hidden></ul>
+  <p><button id="next">Next</button></p>
+</div>
+<script>
+const CITIES = ['Bengaluru', 'Chennai', 'Coimbatore', 'Delhi', 'Hyderabad', 'Mumbai', 'Pune'];
+const fx = window.__fx = {city: '', next: false};
+const $ = id => document.getElementById(id);
+function show(filter) {
+  const items = CITIES.filter(c => c.toLowerCase().includes((filter || '').toLowerCase()));
+  setTimeout(() => {                                   // results arrive a moment later, as from a server
+    $('lb').innerHTML = items.map(c => `<li role="option" aria-selected="false">${c}</li>`).join('');
+    $('lb').hidden = false; $('city').setAttribute('aria-expanded', 'true');
+    for (const li of $('lb').children) li.onmousedown = e => { e.preventDefault(); pick(li.textContent); };
+  }, 250);
+}
+function hide() { $('lb').hidden = true; $('city').setAttribute('aria-expanded', 'false'); }
+function pick(c) { $('city').value = c; fx.city = c; hide(); }
+$('city').addEventListener('input', e => show(e.target.value));
+$('city').addEventListener('keydown', e => { if (e.key === 'ArrowDown' && $('lb').hidden) show(''); if (e.key === 'Escape') hide(); });
+$('city').addEventListener('blur', () => setTimeout(hide, 150));
+$('next').onclick = () => { fx.next = true; fx.cityAtNext = $('city').value; $('h').textContent = 'Step 2';
+  $('form').innerHTML = '<p>Done</p>'; };
+</script></body></html>

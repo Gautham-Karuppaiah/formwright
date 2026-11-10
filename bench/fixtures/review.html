@@ -1,0 +1,14 @@
+<!doctype html>
+<!-- T3 / T4: a Review page whose form submits on Enter in its text box or on its Submit button. -->
+<html><head><meta charset="utf-8"><title>Review - Fixture Co</title></head><body>
+<h2>Review</h2>
+<form id="f">
+  <label>Comments <input id="c" name="c"></label>
+  <button type="submit" id="sub">Submit</button>
+</form>
+<script>
+const fx = window.__fx = {submitted: false};
+document.getElementById('f').onsubmit = e => { e.preventDefault(); fx.submitted = true;
+  document.querySelector('h2').textContent = 'Application Submitted'; };
+document.getElementById('c').focus();
+</script></body></html>

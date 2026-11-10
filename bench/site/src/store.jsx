@@ -15,6 +15,43 @@ export const delay = (ms) => new Promise((r) => setTimeout(r, SLOW ? ms * 3 : ms
 
 const Ctx = createContext(null);
 
+// The label each field key was shown under, gathered from the page as it is drawn (every step, shadow roots
+// included). The bench uses it to match formwright's write log (which names fields by label) to this page's record
+// (keyed by field key): "formwright said this field took, the page says it's empty" needs both sides.
+const labelsSeen = {};
+const CONTROLS = "input, select, textarea, fieldset[id], [role=combobox], [role=listbox], [role=radiogroup], " +
+  "[role=switch], [role=slider], [role=spinbutton], [role=checkbox], [contenteditable=true]";
+const clean = (t) => (t || "").replace(/\*/g, " ").replace(/\s+/g, " ").trim();
+function labelOf(el, key) {
+  const root = el.getRootNode();
+  const byId = (id) => (root.getElementById ? root.getElementById(id) : document.getElementById(id));
+  if (el.labels && el.labels.length) return clean(el.labels[0].innerText);
+  if (el.getAttribute("aria-label")) return clean(el.getAttribute("aria-label"));
+  const lb = el.getAttribute("aria-labelledby");
+  if (lb) return clean(lb.split(/\s+/).map((i) => byId(i)?.innerText || "").join(" "));
+  if (el.tagName === "FIELDSET") return clean(el.querySelector("legend")?.innerText);
+  const own = byId(`${key}-label`);
+  if (own) return clean(own.innerText);
+  return clean(el.closest(".row")?.querySelector("label, .lbl, legend")?.innerText);
+}
+function* everything(root) {
+  for (const el of root.querySelectorAll("*")) {
+    yield el;
+    if (el.shadowRoot) yield* everything(el.shadowRoot);
+  }
+}
+function harvestLabels() {
+  let added = false;
+  for (const el of everything(document)) {
+    if (!el.matches(CONTROLS)) continue;
+    const key = el.getAttribute("name") || el.id;
+    if (!key || labelsSeen[key]) continue;
+    const t = labelOf(el, key);
+    if (t) { labelsSeen[key] = t; added = true; }
+  }
+  return added;
+}
+
 export function Store({ scenario, initial, children }) {
   const [fields, setFields] = useState(initial || {});
   const [gen, setGen] = useState(0);
@@ -26,15 +63,22 @@ export function Store({ scenario, initial, children }) {
   const post = useCallback(() => {
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
+      try { harvestLabels(); } catch { /* labels are a grading aid; never break the page */ }
       fetch(`/state?run=${encodeURIComponent(Q.get("run") || "manual")}`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ scenario, redraw: REDRAW, ...latest.current.meta, fields: latest.current.fields }),
+        body: JSON.stringify({ scenario, redraw: REDRAW, ...latest.current.meta, fields: latest.current.fields,
+          labels: labelsSeen }),
       }).catch(() => {});
     }, 80);
   }, [scenario]);
 
   useEffect(post, [fields, meta, post]);
+  // fields that appear without a change (a step loading late, a section opened) still get their label reported
+  useEffect(() => {
+    const t = setInterval(() => { try { if (harvestLabels()) post(); } catch { /* as above */ } }, 1000);
+    return () => clearInterval(t);
+  }, [post]);
 
   const redraw = useCallback(() => {
     if (REDRAW) setTimeout(() => setGen((g) => g + 1), 250);

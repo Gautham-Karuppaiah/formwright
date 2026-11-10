@@ -1,0 +1,190 @@
+# A made-up applicant for the tests and the bench (FORMWRIGHT_PROFILE picks the profile a run uses; the bench and the
+# tests always use this one). Same shape as a real profile. Never invent anything not in here or in the resume.
+
+name:
+  first: Karthik
+  last: Raman
+  full: Karthik Raman
+  middle: ""                  # no middle name: middle-name fields stay blank
+email: karthik.raman@example.com
+phone: "+91 9000011122"
+phone_country_code: "+91"
+phone_national: "9000011122"  # use this when the form has its own country-code field or asks for digits only
+links:
+  linkedin: https://linkedin.com/in/karthik-raman-dev
+  github: https://github.com/karthik-raman-dev
+  portfolio: https://github.com/karthik-raman-dev/floorplan-counter
+location:
+  city: Chennai
+  state: Tamil Nadu
+  country: India
+  address_line1: B-12, Lotus Residency
+  address_line2: Rajiv Gandhi Salai, Thoraipakkam
+  address: B-12, Lotus Residency, Rajiv Gandhi Salai, Thoraipakkam, Chennai, Tamil Nadu 600097
+  pincode: "600097"
+date_of_birth: 2003-10-14      # format per field: DD/MM/YYYY on most Indian forms. He is over 18.
+
+identity:
+  gender: Male
+  pronouns: He/him
+  transgender: "No"
+  disability: "No"
+  veteran: "No"
+  caste_category: General
+  marital_status: Single
+  nationality: Indian
+  ethnicity_us: null        # only on US forms; answer "Asian" / decline if forced
+  hispanic_latino: "No"
+  sexual_orientation: decline   # pick the "prefer not to say" option; if there is none, ask
+
+work_authorization:
+  india: citizen              # authorized, no sponsorship needed
+  elsewhere: needs_sponsorship
+  requires_sponsorship_in_india: "No"
+  # Role in India: authorised to work, no sponsorship needed. Role outside India: needs sponsorship (say so).
+
+employment:
+  status: fresher
+  current_ctc_lpa: 0          # "current / last salary": 0. Where 0 is refused: "Fresher", else "N/A"
+  current_employer: null
+  notice_period_days: 0       # immediate joiner
+  earliest_start: immediately     # "when can you start": a date box -> the Monday of next week; words -> "Immediately"
+  total_experience_years: 0   # internships only; "0" or "Fresher" on dropdowns
+  # Years-of-experience NUMBER box: put 0.5. If the box refuses decimals, 0. If it refuses 0
+  #   (shows 0 but says required / must have a value), 1.
+
+# Expected salary / expected CTC. Answer in LPA (lakh rupees per year) unless the box asks for another unit.
+#  - The job LISTING (the job description, not the form) states a pay range -> the midpoint of that range,
+#    rounded to 0.5 LPA. The minimum and maximum of a slider, a number box or a dropdown are the box's limits,
+#    never a pay range: they say nothing about what the job pays.
+#  - Otherwise -> 5 LPA. A free-text box may say "5 LPA (negotiable)".
+#  - A box that asks for a range (two boxes, or a slider with two handles) -> the listing's range if it states
+#    one, else 5 to 8 LPA.
+#  - A dropdown of bands -> the band that contains 5 LPA.
+#  - Pay in a currency other than INR, or a job outside India -> ask the applicant the first time.
+expected_ctc:
+  default_lpa: 5
+  default_range_lpa: [5, 8]
+
+# Where he can work. He can work in ANY city or country. Two different questions, two answers:
+#  - "Which locations can you work in / are you willing to relocate to / select all that apply" -> every
+#    location offered (tick them all). willing_to_relocate: true. Remote: yes.
+#  - "Preferred location" (asks for one, or for a ranking) -> the listing's own city if offered, else Chennai,
+#    else Bangalore (Bengaluru), then the rest in the order shown.
+location_preference:
+  can_work_in: anywhere
+  willing_to_relocate: true
+  preferred_order: [the listing's own city, Chennai, Bangalore]
+  remote_ok: true
+  office_days_per_week: 5     # fine with full-time in the office
+
+source_answer:
+  # "How did you hear about us?" -> first option that exists
+  prefer: [LinkedIn, Job Board, Company Website, Other]
+
+# From the resume. All internships are over: none is current ("Present" / "currently work here" is wrong).
+# An entry whose start and end are the same month (Kaveri Finance): enter the real dates (August 2024 to August
+# 2024). ONLY when the form refuses them (shows an error like "start date must be before end date"), change the end
+# to the next month (Kaveri Finance: September 2024). Never change it before the form has refused.
+# description: the applicant's own text for a "role / job description" or "responsibilities" box of that entry,
+#   copied as written (full text, it carries the keywords recruiters search). Only when the box has a length
+#   limit: shorten it by keeping the first line and the bullets that fit, never rewording.
+experience:
+  - title: Software Developer Intern
+    company: Halcyon Byteworks
+    location: "Dubai, UAE"
+    start: 2026-01
+    end: 2026-07
+    description: |-
+      Built a floor-plan fixture counter (45 minutes → 4 minutes per sheet) and a tool that sorts supplier price lists.
+
+      Floor-Plan Fixture Counter
+      - Found 99% of marked fixtures at any rotation by matching vector outlines instead of pixels
+      - Rendered large sheets as tiles off the UI thread, with coarser tiles shown while finer ones load
+      - Exported counts as spreadsheets broken down by building, floor and room
+      - Kept each project in one portable SQLite file, source drawings included
+      - Ported it to the browser in React and TypeScript, rendering sheets in a WebAssembly worker
+
+      Price List Sorter
+      - Read supplier price lists from CSVs and PDFs and matched items across suppliers by model number
+      - Flagged price changes between list versions and exported a comparison sheet
+  - title: Cyber-Security Intern
+    company: "Riverbend Labs, Tidel Research Park"
+    location: "Chennai, India"
+    start: 2025-06
+    end: 2025-08
+    description: >-
+      Ran penetration tests on internal web applications and wrote up each finding with a fix. Completed practice
+      challenges on TryHackMe. Set up an open-source SIEM for log monitoring and alerts. Worked across Ubuntu, Arch,
+      Kali Linux and Windows Server.
+  - title: ML Intern
+    company: Bluefin Analytics Solutions & Technologies
+    location: "Dubai, UAE"
+    start: 2024-06
+    end: 2024-08
+    description: >-
+      Built and compared regression and neural network models for demand forecasting, including linear and
+      polynomial regression, scikit-learn MLP regressors and TensorFlow Sequential models.
+  - title: Cloud Computing Intern
+    company: Kaveri Finance Services Ltd.
+    location: "Chennai, India"
+    start: 2024-08
+    end: 2024-08
+    description: >-
+      Worked on AWS infrastructure: EC2 instances and load balancer setup for Nginx web servers.
+
+# skills: a "Date Achieved" / "acquired on" date for any skill (sites copy skills from the resume) is the start of
+# the degree, 1 August 2022.
+skills_date_achieved: 2022-08-01
+
+# Education entries: add the 12th and 10th only when the form clearly asks for school: its own 10th / 12th boxes,
+# or a level or degree list with "Class X" / "Class XII" / "10th" / "12th" / "Secondary" entries. A general "Add
+# education" or "degree" list gets the B.E. only, even when its options include a broad "High school".
+education:
+  - degree: B.E. Computer Science
+    institution: Coromandel Institute of Technology, Chennai Campus
+    start_year: 2022
+    end_year: 2026
+    graduated: July 2026
+    cgpa: 8.2
+    cgpa_scale: 10
+  - level: 12th (Class XII)
+    board: CBSE
+    school: Lakeview Public School, Coimbatore
+    year: 2022
+    percentage: 78.4
+  - level: 10th (Class X)
+    board: CBSE
+    school: Lakeview Public School, Coimbatore
+    year: 2020
+    percentage: 91.6
+
+languages:
+  - {language: English, proficiency: native}
+  - {language: Hindi, proficiency: native}
+  - {language: Japanese, proficiency: basic}
+
+# Not currently a student (graduated July 2026). Not referred by anyone: "were you referred?" -> No,
+# referrer name fields stay blank.
+# "Are you applying for a full-time role / an internship?" -> decided by the job's title.
+# Required consent, privacy, terms, declaration and "I certify the above is true" boxes: tick them (agree).
+
+# Background / conflict questions: all "No".
+# Military or veteran service, government employee or official, owned a business
+# competing with them, contracted for or worked at this company before, relatives
+# or family employed there, prior application bans, non-compete agreements,
+# criminal convictions, export-control restrictions.
+background_all_no: true
+# Cover letter boxes (text or upload): always leave empty, never write one.
+#   Only if the form won't go on without one -> ask.
+# Optional free-text boxes about him (role / job description of a work entry, summary, skills, projects): fill
+#   them from the RESUME FACTS, a few plain sentences, same claims rules. Leave blank only open-ended extras with
+#   nothing asked: "comments", "anything else you'd like to add", "additional information".
+# Optional opt-ins (marketing, newsletters, job alerts, SMS / email / WhatsApp updates, talent community): No.
+marketing_opt_ins: "No: never opt in to marketing, newsletters, job alerts or SMS/email/WhatsApp updates"
+
+# paths relative to this file
+resume:
+  pdf: Karthik_Raman_Resume.pdf
+  claims_rules: resume.md
+  writing_guide: writing

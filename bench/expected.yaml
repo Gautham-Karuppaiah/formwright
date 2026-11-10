@@ -1,4 +1,4 @@
-# What a correct fill of each bench scenario looks like (bench/site). Values come from profile.yaml.
+# What a correct fill of each bench scenario looks like (bench/site). Values come from bench/applicant/profile.yaml.
 # A plain value must match exactly (after trimming). Rules:
 #   {digits: "..."}      the digits in the value equal this
 #   {number: 6}          the value parses to this number
@@ -84,7 +84,7 @@ wizard:
   w_noncompete: "No"
   w_certify: true
 
-# ---- coverage pages (bench/COVERAGE.md, bench/site/src/scenarios2.jsx) ----
+# ---- coverage pages (bench/site/src/scenarios2.jsx) ----
 oracle:
   o_phone: "9000011122"
   o_city: {value: "Chennai, Tamil Nadu"}

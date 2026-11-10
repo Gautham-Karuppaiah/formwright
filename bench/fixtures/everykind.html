@@ -1,0 +1,28 @@
+<!doctype html>
+<!-- W2: one box of every kind, each already holding something, plus a type-to-search box holding search text with
+     nothing chosen, and a password box. Every box's line on the planner's page must say what code reads it holds,
+     with the kind of evidence named; the password never appears. -->
+<html><head><meta charset="utf-8"><title>Every kind - Fixture Co</title></head><body>
+<h2>Every kind</h2>
+<form onsubmit="return false">
+<p><label>First name <input id="t" type="text" value="Karthik"></label></p>
+<p><label>Email <input id="e" type="email" value="g@example.com"></label></p>
+<p><label>Phone <input id="ph" type="tel" value="9876543210"></label></p>
+<p><label>Years of experience <input id="n" type="number" value="1"></label></p>
+<p><label>Start date <input id="d" type="date" value="2026-07-01"></label></p>
+<p><label>Website <input id="u" type="url" value="https://example.com"></label></p>
+<p><label>About you <textarea id="ta"></textarea></label></p>
+<p><label>Country <select id="s"><option>Select...</option><option selected>India</option><option>Japan</option></select></label></p>
+<p><span id="cl">City</span> <input id="city" role="combobox" aria-labelledby="cl" aria-autocomplete="list" aria-expanded="false" value="Chen"></p>
+<fieldset><legend>Willing to travel</legend>
+  <label><input type="radio" name="tr" value="y" checked> Yes</label> <label><input type="radio" name="tr" value="n"> No</label></fieldset>
+<fieldset><legend>Languages</legend>
+  <label><input type="checkbox" checked> English</label> <label><input type="checkbox"> Hindi</label></fieldset>
+<p><label><input id="c" type="checkbox" checked> I agree to the terms</label></p>
+<p><label>Resume <input id="f" type="file"></label></p>
+<p><label>Password <input id="pw" type="password" value="Sekrit-Value-42"></label></p>
+</form>
+<script>
+window.__fx = {};
+document.getElementById('ta').value = "I build things. ".repeat(80).trim();
+</script></body></html>

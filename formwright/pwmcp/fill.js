@@ -113,7 +113,7 @@ function SCROLL(el, toTop) {
 }
 
 // A cheap fingerprint of the frame: when it stops changing, the page has settled. Polled from Node, never with a
-// timer inside the page: a page's timers can be held back for many seconds (seen after a native select, 2026-11-14).
+// timer inside the page: a page's timers can be held back for many seconds (seen after a native select).
 function SIG() {
   const a = document.activeElement;
   return document.getElementsByTagName('*').length + '|' + (document.body ? document.body.innerText.length : 0) + '|' +

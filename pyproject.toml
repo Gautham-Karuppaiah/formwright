@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "formwright"
+version = "0.1.0"
+description = "A form-filling tool for AI browser agents, added to Playwright MCP"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = ["PyYAML>=6,<7", "patchright>=1.58,<2", "mcp>=2.1,<3"]
+
+[project.scripts]
+fw = "formwright.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["formwright", "formwright.*"]
+
+[tool.setuptools.package-data]
+"formwright.pwmcp" = ["*.js"]

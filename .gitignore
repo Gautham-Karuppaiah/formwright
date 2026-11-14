@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+*.log
+bench/runs/
+bench/site/node_modules/
+bench/site/dist/

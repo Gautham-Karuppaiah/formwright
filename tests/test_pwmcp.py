@@ -109,7 +109,7 @@ async def run_server(argv, base, port, tmp):
 @unittest.skipUnless(os.environ.get("FORMWRIGHT_BROWSER_TESTS") == "1", "needs a browser: FORMWRIGHT_BROWSER_TESTS=1")
 class SameAsPlaywrightMCP(unittest.TestCase):
     """On plain Playwright's driver the replies are npx MCP's exactly. On Patchright's (what formwright uses) two are
-    known to differ, both Patchright's doing (seen 2026-11-14): an alert() is gone by the call after the one that
+    known to differ, both Patchright's doing: an alert() is gone by the call after the one that
     reported it, so handle_dialog finds no dialog; after going back to a page with an iframe, the iframe is empty."""
 
     @classmethod

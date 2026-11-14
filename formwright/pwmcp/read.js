@@ -1,5 +1,4 @@
 // What a form control shows now (value, typed query, selection, the widget's visible text, ticked state, errors).
-// The same reader as formwright/repair.py _READ_JS (copied, kept in step by hand).
 const READ = function (arg) {
   const Q = 'input:not([type=hidden]):not([aria-hidden=true]):not([tabindex="-1"]),select,textarea,' +
             '[role=combobox],[role=listbox],[role=textbox],[role=radio],[role=checkbox],[role=switch],' +

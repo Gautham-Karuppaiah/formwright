@@ -27,15 +27,21 @@ export function Row({ id, label, required, error, children, labelFor = true }) {
 
 const errOf = (errs, k) => (errs.includes(k) ? "This field is required." : null);
 
-// ---- native controls ----
-export function Text({ k, label, required, type = "text", textarea, maxLength, aria }) {
+// a field's value and setter: the store's field k, or `bind` ({value, set}) for a field inside a list row
+function useField(k, bind) {
   const { fields, set, redraw, meta } = useForm();
+  return bind ? { cur: bind.value, put: bind.set, redraw, meta } : { cur: fields[k], put: (v, commit) => set(k, v, commit), redraw, meta };
+}
+
+// ---- native controls ----
+export function Text({ k, label, required, type = "text", textarea, maxLength, aria, bind }) {
+  const { cur, put, redraw, meta } = useField(k, bind);
   const Tag = textarea ? "textarea" : "input";
   return (
     <Row id={k} label={label} required={required} error={errOf(meta.errors, k)}>
-      <Tag id={k} name={k} type={textarea ? undefined : type} value={fields[k] ?? ""} maxLength={maxLength}
+      <Tag id={k} name={k} type={textarea ? undefined : type} value={cur ?? ""} maxLength={maxLength}
         aria-label={aria} aria-required={required || undefined} aria-invalid={meta.errors.includes(k) || undefined}
-        onChange={(e) => set(k, e.target.value, false)} onBlur={redraw} />
+        onChange={(e) => put(e.target.value, false)} onBlur={redraw} />
     </Row>
   );
 }
@@ -139,15 +145,14 @@ export function Split({ k, label, required, parts }) {
 // ---- library widgets ----
 const opt = (x) => ({ value: x, label: x });
 
-export function RSelect({ k, label, required, options, multi }) {
-  const { fields, set, meta } = useForm();
-  const cur = fields[k];
+export function RSelect({ k, label, required, options, multi, bind }) {
+  const { cur, put, meta } = useField(k, bind);
   const value = multi ? (cur || []).map(opt) : cur ? opt(cur) : null;
   return (
     <Row id={k} label={label} required={required} error={errOf(meta.errors, k)}>
       <Select inputId={k} instanceId={k} options={options.map(opt)} value={value} isMulti={multi}
         aria-invalid={meta.errors.includes(k)} classNamePrefix="rs"
-        onChange={(o) => set(k, multi ? (o || []).map((x) => x.value) : o?.value ?? "")} />
+        onChange={(o) => put(multi ? (o || []).map((x) => x.value) : o?.value ?? "")} />
     </Row>
   );
 }
@@ -170,25 +175,25 @@ export function RAsync({ k, label, required, search, minChars = 0, placeholder, 
   );
 }
 
-export function MuiAuto({ k, label, required, options }) {
-  const { fields, set, meta } = useForm();
+export function MuiAuto({ k, label, required, options, bind }) {
+  const { cur, put, meta } = useField(k, bind);
   return (
     <div className="row">
-      <Autocomplete id={k} options={options} value={fields[k] || null} autoHighlight={false}
-        onChange={(_, v) => set(k, v || "")}
+      <Autocomplete id={k} options={options} value={cur || null} autoHighlight={false}
+        onChange={(_, v) => put(v || "")}
         renderInput={(p) => <TextField {...p} label={label} required={required} size="small"
           error={meta.errors.includes(k)} helperText={errOf(meta.errors, k)} />} />
     </div>
   );
 }
 
-export function MuiSel({ k, label, required, options }) {
-  const { fields, set, meta } = useForm();
+export function MuiSel({ k, label, required, options, bind }) {
+  const { cur, put, meta } = useField(k, bind);
   return (
     <div className="row">
       <FormControl fullWidth size="small" required={required} error={meta.errors.includes(k)}>
         <InputLabel id={`${k}-label`}>{label}</InputLabel>
-        <MuiSelect labelId={`${k}-label`} id={k} value={fields[k] || ""} label={label} onChange={(e) => set(k, e.target.value)}>
+        <MuiSelect labelId={`${k}-label`} id={k} value={cur || ""} label={label} onChange={(e) => put(e.target.value)}>
           {options.map((o) => <MenuItem key={o} value={o}>{o}</MenuItem>)}
         </MuiSelect>
       </FormControl>
@@ -197,14 +202,14 @@ export function MuiSel({ k, label, required, options }) {
   );
 }
 
-export function Headless({ k, label, required, options }) {
-  const { fields, set, meta } = useForm();
+export function Headless({ k, label, required, options, bind }) {
+  const { cur, put, meta } = useField(k, bind);
   const [q, setQ] = useKept(`Headless.q.${k}`, "");
   const shown = q ? options.filter((o) => o.toLowerCase().includes(q.toLowerCase())) : options;
   return (
     <HField className={`row${meta.errors.includes(k) ? " bad" : ""}`}>
       <HLabel>{label}{required && <span className="req"> *</span>}</HLabel>
-      <Combobox value={fields[k] || null} onChange={(v) => set(k, v || "")} onClose={() => setQ("")}>
+      <Combobox value={cur || null} onChange={(v) => put(v || "")} onClose={() => setQ("")}>
         <ComboboxInput name={k} className="hl-input" displayValue={(v) => v || ""} onChange={(e) => setQ(e.target.value)} />
         <ComboboxOptions anchor="bottom start" className="hl-options">
           {shown.map((o) => <ComboboxOption key={o} value={o} className="hl-option">{o}</ComboboxOption>)}
@@ -215,13 +220,13 @@ export function Headless({ k, label, required, options }) {
   );
 }
 
-export function Down({ k, label, required, options }) {
-  const { fields, set, meta } = useForm();
+export function Down({ k, label, required, options, bind }) {
+  const { cur, put, meta } = useField(k, bind);
   const [items, setItems] = useKept(`Down.items.${k}`, options);
   const cb = useCombobox({
-    items, inputId: k, selectedItem: fields[k] || null,
+    items, inputId: k, selectedItem: cur || null,
     onInputValueChange: ({ inputValue }) => setItems(options.filter((o) => o.toLowerCase().includes((inputValue || "").toLowerCase()))),
-    onSelectedItemChange: ({ selectedItem }) => set(k, selectedItem || ""),
+    onSelectedItemChange: ({ selectedItem }) => put(selectedItem || ""),
   });
   return (
     <div className={`row${meta.errors.includes(k) ? " bad" : ""}`}>

@@ -16,7 +16,10 @@ function tabTool(tool) {
   } };
 }
 
+const { fillTool } = require('./fill');
+
 const formwrightTools = {
+  formwright_fill: fillTool(z, tabTool),
   // what an element ref resolves to: for tests of the ref sharing, not offered to models
   formwright_probe: tabTool({
     capability: 'core',

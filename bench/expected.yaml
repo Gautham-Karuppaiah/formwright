@@ -205,3 +205,38 @@ dropzone:
   first_name: Karthik
   email: karthik.raman@example.com
   resume: {suffix: ".pdf"}
+
+# Ametek's traits: ~40 custom dropdowns, most in Add rows with repeated labels. Education: a general degree list
+# (its broad "High School" doesn't ask for school) gets the B.E. only. Japanese "basic" = Elementary Proficiency.
+longform:
+  first_name: Karthik
+  last_name: Raman
+  email: karthik.raman@example.com
+  phone_code: "India (+91)"
+  phone: {digits: "9000011122"}
+  country: India
+  state: Tamil Nadu
+  city: Chennai
+  address1: {contains: "Lotus Residency"}
+  pincode: "600097"
+  resume: {suffix: ".pdf"}
+  work:
+    entries:
+      - {title: Software Developer Intern, company: Halcyon Byteworks, start_month: January, start_year: "2026", end_month: July, end_year: "2026"}
+      - {title: Cyber-Security Intern, company: Riverbend Labs, start_month: June, start_year: "2025", end_month: August, end_year: "2025"}
+      - {title: ML Intern, company: Bluefin Analytics, start_month: June, start_year: "2024", end_month: August, end_year: "2024"}
+      - {title: Cloud Computing Intern, company: Kaveri Finance Services, start_month: August, start_year: "2024", end_month: August, end_year: "2024"}
+  education:
+    entries:
+      - {school: {contains: Coromandel Institute}, degree: Bachelors, major: Computer Science, year: "2026"}
+  languages:
+    entries:
+      - {language: English, speaking: Native or Bilingual Proficiency, reading: Native or Bilingual Proficiency, writing: Native or Bilingual Proficiency}
+      - {language: Hindi, speaking: Native or Bilingual Proficiency, reading: Native or Bilingual Proficiency, writing: Native or Bilingual Proficiency}
+      - {language: Japanese, speaking: Elementary Proficiency, reading: Elementary Proficiency, writing: Elementary Proficiency}
+  relocate: "Yes"
+  notice: Immediate
+  sponsorship: "No"
+  worked_before: "No"
+  source: LinkedIn
+  certify: true

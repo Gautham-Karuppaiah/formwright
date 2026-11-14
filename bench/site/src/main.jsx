@@ -4,12 +4,13 @@ import { Q, REDRAW, SLOW, Store } from "./store";
 import { Address, Basics, Experience, EXPERIENCE_INITIAL, Languages, LANGUAGES_INITIAL, Widgets, Wizard } from "./scenarios";
 import { Applied, Asks, Groups, Html, IcimsInner, IcimsOuter, Oracle, Refuse, Sap, Sections, Widgets2, WIDGETS2_INITIAL, Workday } from "./scenarios2";
 import { Dropzone, Hidden } from "./scenarios4";
+import { Longform } from "./scenarios5";
 import "./style.css";
 
 const SCENARIOS = { basics: Basics, widgets: Widgets, address: Address, experience: Experience, languages: Languages, wizard: Wizard,
   oracle: Oracle, workday: Workday, sap: Sap, icims: IcimsInner, sections: Sections, html: Html, widgets2: Widgets2,
   groups: Groups, asks: Asks, refuse: Refuse, applied: Applied,
-  hidden: Hidden, dropzone: Dropzone };
+  hidden: Hidden, dropzone: Dropzone, longform: Longform };
 const INITIAL = { experience: EXPERIENCE_INITIAL, languages: LANGUAGES_INITIAL, widgets2: WIDGETS2_INITIAL };
 
 function App() {

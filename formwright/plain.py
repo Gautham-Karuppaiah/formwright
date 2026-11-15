@@ -26,7 +26,8 @@ This is a DRY RUN: fill every field correctly and go through every step of the a
 Save and continue are fine, and so are signing in, creating an account and verifying an email), but never click
 the button that sends the finished application to the employer. Stop just before it.
 Use only facts from the applicant's files. Never invent an answer. When a question needs something the files don't
-say and only the applicant can decide, stop and report needs_user with the question. When the page says this job
+say and only the applicant can decide, fill the rest of the page first, then stop and report needs_user with the
+question. When the page says this job
 was already applied for, stop and report skipped. Optional fields the files say nothing about stay blank.
 When you are done, reply with:
 - end: dry_done (everything filled, stopped before the final send) | needs_user | skipped

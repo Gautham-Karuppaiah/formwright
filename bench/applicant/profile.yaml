@@ -22,6 +22,7 @@ location:
   address_line2: Rajiv Gandhi Salai, Thoraipakkam
   address: B-12, Lotus Residency, Rajiv Gandhi Salai, Thoraipakkam, Chennai, Tamil Nadu 600097
   pincode: "600097"
+  permanent_address: same as current   # forms with current + permanent address: the same address in both
 date_of_birth: 2003-10-14      # format per field: DD/MM/YYYY on most Indian forms. He is over 18.
 
 identity:

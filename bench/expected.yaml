@@ -7,6 +7,7 @@
 #   {value: "..."}       a picked option whose stored value is this
 #   {suffix: ".pdf"}     the value ends with this
 #   {next_monday: true}  dd/mm/yyyy of the Monday of next week ("earliest start: immediately" in profile.yaml)
+#   {monday_after_next: true}  yyyy-mm-dd a week after that (a date box whose first allowed day is later)
 #   {entries: [...]}     list of entry cards; each listed entry must be there with these fields, and nothing else
 #   absent               the field is empty or missing (optional box left blank / not revealed)
 
@@ -253,3 +254,29 @@ modal:
   md_phone: {digits: "9000011122"}
   md_gender: Male
   md_family: "No"
+
+trapform:              # the traps page's traits as one application; pre-set answers stay as they were
+  tr_city: Chennai
+  tr_auth: "Yes"
+  tr_spons: "No"
+  tr_consent: true
+  tr_sex: Male
+  tr_pin: "600097"
+  tr_pref: Chennai
+  tr_ctc: {number: 5}
+  tr_reloc: "Yes"
+  tr_notice: Immediate
+  tr_resume: {suffix: ".pdf"}
+  tr_cover: absent
+  tr_portfolio: absent
+  tr_sample: absent
+  tr_qual: "Bachelor's degree"
+  tr_news: absent
+  tr_degree: cs-be
+  tr_email: karthik.raman@example.com
+  tr_ref: absent
+  tr_office: "Yes"
+  tr_langs: {set: [English, Hindi, Japanese]}
+  tr_start: {monday_after_next: true}
+  tr_mobile: {digits: "9000011122"}
+  tr_loc: "Chennai, Tamil Nadu, India"

@@ -37,7 +37,7 @@ DIST = SITE / "dist"
 RUNS = BENCH / "runs"
 SCENARIOS = ["basics", "widgets", "address", "experience", "languages", "wizard", "oracle", "workday", "sap", "icims",
              "sections", "html", "widgets2", "groups", "asks", "refuse", "applied", "hidden",
-             "dropzone", "longform"]
+             "dropzone", "longform", "trapform"]
 CASE_TIMEOUT = 15 * 60
 
 
@@ -190,6 +190,9 @@ def check(rule, v):
     if kind == "next_monday_week":               # <input type=week>: yyyy-Www of next Monday
         y, w, _ = datetime.datetime.strptime(_next_monday(), "%d/%m/%Y").isocalendar()
         return _s(v) == f"{y}-W{w:02d}", f"{y}-W{w:02d}"
+    if kind == "monday_after_next":              # <input type=date>: yyyy-mm-dd of the Monday a week after next Monday
+        d = datetime.datetime.strptime(_next_monday(), "%d/%m/%Y") + datetime.timedelta(days=7)
+        return _s(v) == d.strftime("%Y-%m-%d"), d.strftime("%Y-%m-%d")
     if kind == "nonempty":
         return not _empty(v), "anything written"
     if kind == "starts":                          # a list whose first items are these, in this order

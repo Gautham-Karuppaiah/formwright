@@ -25,7 +25,7 @@ On Windows the command is `.venv\Scripts\fw.exe`. `fw mcp` accepts Playwright MC
 
 ## Practice forms
 
-`bench/site` has 20 forms built with react-select, MUI, Headless UI, Downshift and react-datepicker. Each one is
+`bench/site` has 21 forms built with react-select, MUI, Headless UI, Downshift and react-datepicker. Each one is
 graded from what the page itself recorded, and the agent sends each form at the end. Building them needs Node: `cd bench/site && npm ci`.
 
 ```bash

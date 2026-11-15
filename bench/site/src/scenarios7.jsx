@@ -13,7 +13,7 @@ function Lbl({ k, text }) {
 }
 
 // A type-ahead whose list is in the page only while typing has results; Escape closes the list when one is open.
-function TypeAhead({ k, label, options }) {
+export function TypeAhead({ k, label, options }) {
   const { fields, set } = useForm();
   const [q, setQ] = useKept(`TypeAhead.q.${k}`, null);
   const shown = q ? options.filter((o) => o.toLowerCase().includes(q.toLowerCase())) : [];
@@ -36,7 +36,7 @@ function TypeAhead({ k, label, options }) {
 }
 
 // A section holding two questions and a ticked confirmation box.
-function Section() {
+export function Section() {
   const { fields, set } = useForm();
   const yn = (k, text) => (
     <fieldset className="row" id={k}>
@@ -62,7 +62,7 @@ function Section() {
 }
 
 // Radios of one question with no group around them: the question is only nearby text.
-function LooseRadios() {
+export function LooseRadios() {
   const { fields, set } = useForm();
   return (
     <div className="row">
@@ -77,7 +77,7 @@ function LooseRadios() {
 }
 
 // A box that takes the focus back while what it holds is invalid.
-function ClingyPin() {
+export function ClingyPin() {
   const { fields, set } = useForm();
   const ref = useRef(null);
   const bad = fields.tr_pin != null && !/^\d{6}$/.test(fields.tr_pin);
@@ -114,7 +114,7 @@ function SlowSlider() {
   );
 }
 
-function Slot() {
+export function Slot() {
   const { fields, set } = useForm();
   return (
     <fieldset className="row" id="tr_slot">
@@ -129,7 +129,7 @@ function Slot() {
 }
 
 // A list drawn on the page, always visible.
-function ShiftList() {
+export function ShiftList() {
   const { fields, set } = useForm();
   return (
     <div className="row">
@@ -145,7 +145,7 @@ function ShiftList() {
 }
 
 // An upload button whose file input is elsewhere in the form, beside a row that has its own.
-function Uploads({ resumeInput }) {
+export function Uploads({ resumeInput }) {
   const { fields, set } = useForm();
   const cover = useRef(null);
   return (
@@ -178,7 +178,7 @@ function Locked() {
   );
 }
 
-function Langs() {
+export function Langs() {
   const { fields, set } = useForm();
   return (
     <div className="row">
@@ -205,7 +205,7 @@ function StartDate() {
 }
 
 // A box that says, under itself, when what it was left holding is wrong.
-function Mobile() {
+export function Mobile() {
   const { fields, set } = useForm();
   const [left, setLeft] = useKept("Mobile.left", false);
   const bad = left && !/^\d{10}$/.test(fields.tr_mobile || "");
@@ -220,7 +220,7 @@ function Mobile() {
 }
 
 // A plain box with a suggestion list: only a picked suggestion counts; typed text stays in the box.
-function Location() {
+export function Location() {
   const { fields, set } = useForm();
   const [q, setQ] = useKept("Location.q", null);
   const [open, setOpen] = useKept("Location.open", false);
@@ -243,7 +243,7 @@ function Location() {
 }
 
 // An upload button whose input is elsewhere, beside a row that is a plain file input of its own.
-function MoreUploads({ portfolioInput }) {
+export function MoreUploads({ portfolioInput }) {
   const { fields, set } = useForm();
   return (
     <div>
@@ -262,7 +262,7 @@ function MoreUploads({ portfolioInput }) {
 
 // A dropdown drawn as a read-only box showing the pick. groups: [[heading or null, [[text, disabled]]]]; a disabled
 // option still takes a click (the page only styles it); a pick under a heading is recorded with its heading.
-function ListPick({ k, label, groups }) {
+export function ListPick({ k, label, groups }) {
   const { fields, set } = useForm();
   const [open, setOpen] = useKept(`ListPick.open.${k}`, false);
   return (
@@ -293,7 +293,7 @@ function ListPick({ k, label, groups }) {
 }
 
 // A switch the page has turned off for this applicant; its handler doesn't check.
-function OffSwitch() {
+export function OffSwitch() {
   const { fields, set } = useForm();
   return (
     <div className="row">
@@ -318,7 +318,7 @@ function Dept() {
 }
 
 // A box checked by the server a moment after it is left.
-function Email() {
+export function Email() {
   const { fields, set } = useForm();
   const [taken, setTaken] = useKept("Email.taken", false);
   return (
@@ -332,7 +332,7 @@ function Email() {
   );
 }
 
-function Referral() {
+export function Referral() {
   const { fields, set } = useForm();
   return (
     <div className="row">
@@ -343,7 +343,7 @@ function Referral() {
 }
 
 // A yes/no question that answers "No" with an error in its own group.
-function Office() {
+export function Office() {
   const { fields, set } = useForm();
   return (
     <fieldset className="row" id="tr_office">

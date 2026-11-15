@@ -75,7 +75,9 @@ function KIND(el) {
 // (aria-controls / aria-owns), else every visible one in the frame. With mark: that item's element, or null.
 function ITEMS(el, mark) {
   const box = el.matches('input,[role=combobox],button') ? el : (el.querySelector('input,[role=combobox]') || el);
-  const vis = o => !!(o.offsetParent || o.getClientRects().length);
+  // shown to a person: a list kept in the page but hidden (visibility, opacity) until opened is not open
+  const vis = o => !!(o.offsetParent || o.getClientRects().length) &&
+    (!o.checkVisibility || o.checkVisibility({ visibilityProperty: true, opacityProperty: true }));
   const SEL = '[role=option],[role=gridcell],[role=treeitem],[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox]';
   const roots = [];
   for (const a of ['aria-controls', 'aria-owns'])
@@ -97,7 +99,8 @@ function ITEMS(el, mark) {
 
 // Scroll the open list one screen down (lists that draw only the rows in view). true when it moved.
 function SCROLL(el, toTop) {
-  const vis = e => e.offsetParent || e.getClientRects().length;
+  const vis = e => !!(e.offsetParent || e.getClientRects().length) &&
+    (!e.checkVisibility || e.checkVisibility({ visibilityProperty: true, opacityProperty: true }));
   let opts = [];
   for (const a of ['aria-controls', 'aria-owns']) {
     const id = el.getAttribute(a) || el.querySelector('[' + a + ']')?.getAttribute(a);
@@ -310,6 +313,17 @@ class Field {
     return named ? now : now.filter(i => !before.includes(i));
   }
   async key(k) { await this.page.keyboard.press(k); }
+  // Escape closes whatever holds the focus: a dialog, a whole form. Pressed only while the focus is in this field
+  // or in an option list, so it can only close this field's list. true when pressed.
+  async escape() {
+    const ours = await this.ev(e => {
+      const a = e.getRootNode().activeElement || document.activeElement;
+      if (!a || a === document.body || a === document.documentElement) return false;
+      return e === a || e.contains(a) || !!a.closest('[role=listbox],[role=menu],[role=tree],[role=grid]');
+    }).catch(() => false);
+    if (ours) await this.key('Escape');
+    return ours;
+  }
   async clickEl(el) {
     try { await el.click({ timeout: ACTION_MS }); return 'click'; }
     catch { await capped(el.evaluate(e => e.click()), 'clicking'); return 'DOM click'; }
@@ -346,7 +360,7 @@ class Field {
   async quiet() {
     for (let i = 0; i < 8; i++) {
       if (!(await this.items()).length) return;
-      if (i === 0) await this.key('Escape');
+      if (i === 0) await this.escape();
       await new Promise(r => setTimeout(r, 150));
     }
   }
@@ -374,7 +388,7 @@ function agrees(rb, want, op = {}) {
     .filter(Boolean).map(norm);
   if (texts.some(t => t === w || t.includes(w))) return 'yes';
   // a search box holding exactly what we typed proves nothing; holding the whole option after we typed only part
-  // of it means the widget wrote it there
+  // of it, or nothing, means the widget wrote it there; not knowing what was typed proves nothing either
   if (rb.query != null && norm(rb.query) === w) return op.typed != null && norm(op.typed) !== w ? 'yes' : 'unknown';
   if (rb.open) return 'unknown';
   return texts.length || rb.query ? 'no' : 'no';
@@ -418,7 +432,7 @@ async function fillText(f, value) {
       const el = await f.evh(ITEMS, m.pick);
       if (el) { await f.clickEl(el); f.did.push(`picked the suggestion ${JSON.stringify(m.pick)}`); await f.settle(); }
     } else {
-      await f.key('Escape');
+      await f.escape();
       f.did.push(`typing opened a list of ${pops.length} options, none of them the answer (${pops.slice(0, 8).map(o => JSON.stringify(o)).join(', ')}${pops.length > 8 ? ', ...' : ''}); closed it`);
       await f.settle();
     }
@@ -635,7 +649,7 @@ async function chooseOne(f, want) {
     m = match(want, items);
   }
   if (!m.pick) {
-    await f.key('Escape');
+    await f.escape();
     await f.settle();
     if (!items.length) f.did.push('no option list appeared');
     else if (m.close.length) f.did.push(`${JSON.stringify(want)} could be any of ${m.close.slice(0, 8).map(c => JSON.stringify(c)).join(', ')}; none picked`);
@@ -659,16 +673,21 @@ async function chooseOne(f, want) {
 
 async function fillChoice(f, value) {
   const wants = Array.isArray(value) ? value : (f.info.many ? String(value).split(/\s*[,;]\s*/) : [String(value)]);
-  let last = {};
+  const done = {};
   for (const w of wants) {
     const rb0 = await f.read();
     if (f.info.many && (rb0.selected || []).some(s => norm(s.text) === norm(w))) { f.did.push(`${JSON.stringify(w)} already chosen`); continue; }
-    last = await chooseOne(f, w);
+    done[w] = await chooseOne(f, w);
   }
   let rb = await f.read();
-  if (rb.open) { await f.key('Escape'); await f.settle(); rb = await f.read(); }
+  if (rb.open) { await f.escape(); await f.settle(); rb = await f.read(); }
+  // the field is checked against the option the tool picked for each answer (named in the reply); what the tool
+  // typed into the box is known, and "typed nothing" ('') differs from "not known" (null)
   const check = r => {
-    const per = wants.map(w => agrees(r, w, wants.length === 1 ? { typed: last.typed } : {}));
+    const per = wants.map(w => {
+      const d = done[w];
+      return agrees(r, (d && d.pick) || w, wants.length === 1 && d ? { typed: d.typed ?? '' } : {});
+    });
     return per.every(v => v === 'yes') ? 'yes' : per.some(v => v === 'no') ? 'no' : 'unknown';
   };
   return { verdict: check(rb), rb, check };
@@ -683,7 +702,7 @@ async function byLabel(page, labels) {
         'input:not([type=hidden]),select,textarea,[role=combobox],[role=textbox],[role=checkbox],[role=radio],[role=switch],[role=radiogroup],fieldset,[contenteditable=true]'));
       const k = await l.count().catch(() => 0);
       if (k === 1) return l;
-      if (k > 1) return null;
+      if (k > 1) break;          // several fields have this label: it can't tell them apart
     }
   }
   return null;
@@ -691,15 +710,21 @@ async function byLabel(page, labels) {
 
 async function fillOne(tab, field) {
   const name = field.name || field.target;
+  const isRef = /^(f\d+)?e\d+$/.test(field.target);
   let locator, note = '';
   try {
     ({ locator } = await tab.targetLocator({ element: field.name, target: field.target }));
     await locator.waitFor({ state: 'attached', timeout: 1000 });
   } catch (e) {
-    // the ref was from a page that has since been redrawn: the field by its label instead, when only one has it
-    locator = field.name && await byLabel(tab.page, [field.name]);
-    if (!locator) throw e;
-    note = ` (${field.target} was gone; found it by its label)`;
+    // a ref from a page that has since been redrawn, or a target given as the field's label text rather than a
+    // ref or selector: the field by that label instead, when only one has it
+    locator = await byLabel(tab.page, isRef ? [field.name] : [field.target, field.name]);
+    if (!locator) {
+      if (isRef) throw e;
+      throw new Error(`${JSON.stringify(field.target.slice(0, 80))} is not a ref from the snapshot, no element matches it as a selector, ` +
+                      `and no single field is labelled that`);
+    }
+    note = isRef ? ` (${field.target} was gone; found it by its label)` : ' (found by its label)';
   }
   dbg('target', field.target, 'resolved');
   const h = (await locator.evaluateHandle(CONTROL_OF)).asElement();

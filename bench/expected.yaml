@@ -245,3 +245,11 @@ longform:
   worked_before: "No"
   source: LinkedIn
   certify: true
+
+modal:
+  md_first: Karthik
+  md_last: Raman
+  md_code: "India (+91)"
+  md_phone: {digits: "9000011122"}
+  md_gender: Male
+  md_family: "No"

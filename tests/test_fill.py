@@ -282,5 +282,26 @@ class Fill(unittest.TestCase):
         self.assertGradedOnly("workday", state, reply, {"wd_auth", "wd_languages"})
         self.assertIn("\n2 ok", reply)
 
+    def test_F13_form_in_a_dialog_hidden_lists_box_shows_the_pick(self):
+        """modal: the form is in a dialog that Escape closes, and every dropdown's list is in the page, hidden, until
+        opened: the tool must not close the dialog. A box that shows the picked option as its own text is ok, and so
+        is a picked option that holds the answer ("India (+91)" for "+91"). A question given by its label text
+        (not a ref) is found by that text."""
+        open_ = [("browser_click", lambda s: {"target": ref(s, "button", "Apply For This Job"), "element": "Apply"})]
+        q = ("Do you have a family relationship (including spouse, partner, parent, sibling or in-law) "
+             "with an employee of the company?")
+
+        def fields(s):
+            bare = re.findall(r"- textbox \[ref=((?:f\d+)?e\d+)\]", s)    # boxes labelled only by nearby text
+            return [{"target": bare[0], "name": "First Name", "value": "Karthik"},
+                    {"target": bare[1], "name": "Last Name", "value": "Raman"},
+                    {"target": ref(s, "combobox", "Country Code"), "name": "Country Code", "value": "+91"},
+                    {"target": ref(s, "textbox", "000 000 0000"), "name": "Phone Number", "value": "9000011122"},
+                    {"target": ref(s, "combobox", "Candidate Gender"), "name": "Candidate Gender", "value": "Male"},
+                    {"target": q, "name": "family with employee", "value": "No"}]
+        state, reply = self.run_page("modal", fields, before=open_)
+        self.assertGraded("modal", state, reply)
+        self.assertIn("\n6 ok, 0 not done, 0 unsure", reply)
+
 if __name__ == "__main__":
     unittest.main()

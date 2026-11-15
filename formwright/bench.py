@@ -1,13 +1,13 @@
 """The practice forms: an agent fills each form in bench/site, graded per field from the page's own record.
 
-`fw bench [FORM...] [--model=haiku] [--submit] [--redraw | --both] [--slow] [--jobs=N]`
+`fw bench [FORM...] [--model=haiku] [--dry] [--redraw | --both] [--slow] [--jobs=N]`
   Serves bench/site/dist on a free port. For each form, `claude -p` drives a browser through Playwright MCP (plain.py)
   with the made-up user's files (bench/applicant). The page reports every change to the bench server; afterwards
   each field is graded against bench/expected.yaml. Results: bench/runs/<stamp>/<form>/result.json.
   --model   the Claude model (default haiku)
-  --submit  send each form at the end (the page's own errors on Submit are part of the test); without it the agent
-            stops before the final send. A form that must stop (a question only the user can answer, a form already
-            sent) fails if it is sent either way.
+  Each form is sent at the end: the page's own errors on Submit are part of the test. A form that must stop (a
+  question only the user can answer, a form already sent) fails if it is sent.
+  --dry     stop before the final send instead (older runs were graded this way)
   --redraw  the page rebuilds all of its DOM after every committed change
   --both    each form as is and with --redraw
   --slow    option lists and page steps answer three times slower
@@ -172,6 +172,11 @@ def check(rule, v):
             return False, f"number {want}"
     if kind == "contains":
         return _has(_s(v), want), f"contains {want!r}"
+    if kind == "either":                          # several answers are right: passes when one of the rules does
+        res = [check(r, v) for r in want]
+        return any(ok for ok, _ in res), " or ".join(w for _, w in res)
+    if kind == "any_of":                          # free text that names at least one of these
+        return any(_has(_s(v), w) for w in want), f"mentions one of {want}"
     if kind == "set":
         return isinstance(v, list) and sorted(map(str, v)) == sorted(want), f"exactly {want}"
     if kind == "value":
@@ -297,7 +302,7 @@ def main(args):
     redraws = [False, True] if "--both" in args else [("--redraw" in args)]
     slow = "--slow" in args
     model = next((a.split("=", 1)[1] for a in args if a.startswith(("--model=", "--plain="))), "haiku")
-    submit = "--submit" in args
+    submit = "--dry" not in args      # --submit (the old flag) is the default now
     names = [a for a in args if not a.startswith("--")] or SCENARIOS
     bad = [n for n in names if n not in SCENARIOS]
     if bad:

@@ -158,8 +158,11 @@ const READ = function (arg) {
   if (invalid) for (const attr of ['aria-errormessage', 'aria-describedby'])
     for (const id of (t.getAttribute(attr) || '').split(/\s+/).filter(Boolean)) {
       const d = document.getElementById(id); const s = d && d.innerText.trim(); if (s) errs.push(s); }
+  // the field's own row: go up while the parent holds no other question (an error beside another box isn't this one's)
+  const others = a => [...a.querySelectorAll(Q)].some(q => q !== el && !el.contains(q) && !q.contains(el) && q !== t
+                                                     && !t.contains(q) && !q.matches('[role=listbox],[role=option]'));
   let p = el;
-  for (let k = 0; k < 3 && p.parentElement; k++) p = p.parentElement;
+  for (let k = 0; k < 3 && p.parentElement && !others(p.parentElement); k++) p = p.parentElement;
   for (const e of p.querySelectorAll('[role=alert],[class*=error],[class*=invalid]')) {
     const s = (e.innerText || '').trim(); if (s && s.length < 200 && e.offsetParent !== null) errs.push(s); }
   // a type-to-search box with its option list still open holds typed search text, not a chosen value

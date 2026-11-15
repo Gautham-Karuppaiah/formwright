@@ -139,7 +139,7 @@ html:
   h_address: {contains: Thoraipakkam}
   h_years: {number: 0}
   h_cities: {set: [Bengaluru, Chennai, Hyderabad, Pune]}
-  h_summary: {contains: Halcyon}
+  h_summary: {any_of: [Halcyon, fixture counter, price list]}   # the most recent internship, by name or its projects
   h_week: {next_monday_week: true}
   h_slot: "10:00"
   h_test: "2026-12-01T10:00"
@@ -154,11 +154,14 @@ widgets2:
   w2_ctc: {range_has: 6}
   w2_citizenship: India
   w2_state: Tamil Nadu
-  w2_education:
-    entries:
-      - {level: {contains: "B.E"}, institution: {contains: Coromandel Institute}, year: "2026", score: {number: 8.2}}
-      - {level: {contains: "12"}, institution: {contains: Lakeview Public School}, year: "2022", score: {number: 78.4}}
-      - {level: {contains: "10"}, institution: {contains: Lakeview Public School}, year: "2020", score: {number: 91.6}}
+  w2_education:          # "every level" is made-up wording, never seen live: the degree alone or with school both pass
+    either:
+      - entries:
+          - {level: {contains: "B.E"}, institution: {contains: Coromandel Institute}, year: "2026", score: {number: 8.2}}
+          - {level: {contains: "12"}, institution: {contains: Lakeview Public School}, year: "2022", score: {number: 78.4}}
+          - {level: {contains: "10"}, institution: {contains: Lakeview Public School}, year: "2020", score: {number: 91.6}}
+      - entries:
+          - {level: {contains: "B.E"}, institution: {contains: Coromandel Institute}, year: "2026", score: {number: 8.2}}
   w2_experience:
     entries:
       - {title: Software Developer Intern, company: Halcyon Byteworks, end_month: July, end_year: "2026", current: false}

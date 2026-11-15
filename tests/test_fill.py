@@ -230,6 +230,16 @@ class Fill(unittest.TestCase):
         self.assertGradedOnly("widgets2", state, reply, {"w2_years"})
         self.assertIn("\n1 ok", reply)
 
+    def test_F8_an_error_beside_another_box_is_not_this_ones(self):
+        """html: the mobile box gets a bad value, so its row shows a format error once the tool moves on; the slider set
+        next reports no error (it once
+        carried the mobile box's message, and Haiku took 0 as refused and put 1)."""
+        fields = [{"target": "#h_mobile", "value": "12"}, {"target": "#h_years", "value": "0"}]
+        state, reply = self.run_page("html", lambda s: fields)
+        years = next(line for line in reply.splitlines() if "Years of professional experience" in line)
+        self.assertNotIn("the form says", years)
+        self.assertEqual(state.get("fields", {}).get("h_years"), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

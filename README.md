@@ -7,10 +7,10 @@ Filling a custom dropdown usually takes an agent several tool calls. `formwright
 in one call. It works out each control's type from the page, fills it, and reads back what the field actually
 shows.
 
-| Claude Haiku on 20 practice forms | Forms right | Cost | Tool calls |
+| Claude Haiku on 20 practice forms, two runs each | Forms right | Cost | Tool calls |
 |---|---|---|---|
-| Playwright MCP | 15–17 | $0.29–0.41 | ~630 |
-| Playwright MCP + `formwright_fill` | 16–17 | $0.17–0.18 | ~430 |
+| Playwright MCP | 18–19 | $0.42–0.45 | ~660 |
+| Playwright MCP + `formwright_fill` | 18–19 | $0.19–0.21 | ~470 |
 
 Same accuracy at about half the cost. Most of the saving comes from long forms with many dropdowns.
 
@@ -26,7 +26,7 @@ On Windows the command is `.venv\Scripts\fw.exe`. `fw mcp` accepts Playwright MC
 ## Practice forms
 
 `bench/site` has 20 forms built with react-select, MUI, Headless UI, Downshift and react-datepicker. Each one is
-graded from what the page itself recorded. Building them needs Node: `cd bench/site && npm ci`.
+graded from what the page itself recorded, and the agent sends each form at the end. Building them needs Node: `cd bench/site && npm ci`.
 
 ```bash
 fw bench                                                   # agent alone (Haiku by default)

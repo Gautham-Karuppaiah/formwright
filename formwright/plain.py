@@ -69,6 +69,11 @@ def prompt(url, mail_url, pdf):
             f"APPLICANT'S FILES\n\n{_files()}")
 
 
+# claude -p run inside a project would load that project's Claude Code memory notes and CLAUDE.md files into the
+# model's context; --setting-sources "" alone doesn't stop that, and --safe-mode also drops the MCP tools.
+NO_NOTES = {"CLAUDE_CODE_DISABLE_AUTO_MEMORY": "1", "CLAUDE_CODE_DISABLE_CLAUDE_MDS": "1"}
+
+
 def _drive(cmd, d, model, timeout):
     """Run one claude -p browser session in folder d: stream to d/plain.jsonl, band status while it runs, its usage
     row in d/data/llm-usage.jsonl. Returns {state, note, turns, rc, seconds, usd}."""
@@ -78,7 +83,8 @@ def _drive(cmd, d, model, timeout):
     t0 = time.time()
     group = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if WINDOWS else {"start_new_session": True}
     with open(d / "plain.jsonl", "w", encoding="utf-8") as out, open(d / "child.log", "w", encoding="utf-8") as err:
-        p = subprocess.Popen(cmd, cwd=d, stdout=out, stderr=err, stdin=subprocess.DEVNULL, **group)
+        p = subprocess.Popen(cmd, cwd=d, stdout=out, stderr=err, stdin=subprocess.DEVNULL, **group,
+                             env={**os.environ, **NO_NOTES})
         while True:
             try:
                 rc = p.wait(timeout=5)

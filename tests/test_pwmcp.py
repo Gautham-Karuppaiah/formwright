@@ -114,7 +114,18 @@ class SameAsPlaywrightMCP(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=str(FIXTURES))
+        class Files(http.server.SimpleHTTPRequestHandler):
+            def do_GET(self):
+                # no favicon 404: its console error lands on whichever call is running, differently each time
+                if self.path == "/favicon.ico":
+                    self.send_response(204)
+                    self.end_headers()
+                    return
+                super().do_GET()
+
+            def log_message(self, *a):
+                pass
+        handler = functools.partial(Files, directory=str(FIXTURES))
         cls.httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
         threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
         cls.port = cls.httpd.server_address[1]

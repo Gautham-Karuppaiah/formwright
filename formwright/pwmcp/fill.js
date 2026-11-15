@@ -449,10 +449,10 @@ async function fillSelect(f, value) {
 async function fillFile(f, value) {
   const paths = Array.isArray(value) ? value : [String(value)];
   await (await f.target()).setInputFiles(paths, { timeout: ACTION_MS });
-  f.did.push(`attached ${paths.map(p => JSON.stringify(p.split('/').pop())).join(', ')}`);
+  f.did.push(`attached ${paths.map(p => JSON.stringify(p.split(/[\\/]/).pop())).join(', ')}`);
   await f.settle(400, 3000);
   const names = await f.ev(e => [...(e.files || [])].map(x => x.name));
-  return { verdict: paths.every(p => names.includes(p.split('/').pop())) ? 'yes' : 'no', rb: { value: names.join(', '), checked: null } };
+  return { verdict: paths.every(p => names.includes(p.split(/[\\/]/).pop())) ? 'yes' : 'no', rb: { value: names.join(', '), checked: null } };
 }
 
 // A slider: a native range box is set directly; an ARIA slider (or a range box that refused) is moved with the

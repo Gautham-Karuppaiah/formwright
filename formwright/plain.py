@@ -17,7 +17,7 @@ from . import BENCH_PROFILE
 MCP = "@playwright/mcp@0.0.83"
 SERVER = os.environ.get("FORMWRIGHT_PLAIN_SERVER", "npx")
 APPLICANT = BENCH_PROFILE.parent
-EFFORT = os.environ.get("FORMWRIGHT_PLAIN_EFFORT", "low")
+EFFORT = os.environ.get("FORMWRIGHT_PLAIN_EFFORT", "medium")   # Haiku 5.5's own default, Anthropic's advice for multi-step tool use
 LEAN = os.environ.get("FORMWRIGHT_PLAIN_LEAN") == "1"   # fewer-calls guidance + no code echo in tool results
 BUDGET_USD = 2.00         # per form
 

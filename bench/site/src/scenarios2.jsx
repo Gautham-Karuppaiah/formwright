@@ -327,6 +327,73 @@ function TreePrompt({ k, label, required }) {
   );
 }
 
+// A picker that doesn't say it is one: a plain text box (no combobox role, aria-haspopup, aria-controls or
+// aria-expanded) whose typed text is only a search. A click opens an option list elsewhere in the page; some
+// options are folders holding others. Enter searches. A pick shows as a chip; leaving the box clears unpicked text.
+function SearchPrompt({ k, label, required, tree }) {
+  const { fields, set, meta } = useForm();
+  const [q, setQ] = useKept(`SearchPrompt.q.${k}`, "");
+  const [open, setOpen] = useKept(`SearchPrompt.open.${k}`, false);
+  const [folder, setFolder] = useKept(`SearchPrompt.folder.${k}`, null);
+  const [found, setFound] = useKept(`SearchPrompt.found.${k}`, null);
+  const [hi, setHi] = useKept(`SearchPrompt.hi.${k}`, -1);
+  const box = useRef(null);
+  const leaves = tree.flatMap(([n, kids]) => (kids ? kids : [n]));
+  const shown = found ? found.map((n) => [n, null]) : folder ? tree.find(([n]) => n === folder)[1].map((n) => [n, null]) : tree;
+  const close = () => { setOpen(false); setFolder(null); setFound(null); setHi(-1); };
+  const pick = ([n, kids]) => {
+    if (kids) { setFolder(n); setHi(-1); return; }
+    set(k, n); setQ(""); close();
+  };
+  const r = box.current?.getBoundingClientRect();
+  const cur = fields[k];
+  return (
+    <Row id={k} label={label} required={required} error={errOf(meta.errors, k)}>
+      {cur && <ul className="chips" style={{ listStyle: "none", padding: 0 }}><li className="chip">{cur}
+        <button type="button" aria-label="Remove" onClick={() => set(k, "")}>×</button></li></ul>}
+      <input ref={box} id={k} value={q} placeholder="Search" enterKeyHint="search" autoComplete="off"
+        onChange={(e) => setQ(e.target.value)}
+        onClick={() => { if (!open) { setOpen(true); setFolder(null); setFound(null); } }}
+        onBlur={() => { setQ(""); close(); }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            if (open && hi >= 0 && shown[hi]) pick(shown[hi]);
+            else if (q.trim()) {
+              const w = q.trim().toLowerCase();
+              setFound(leaves.filter((n) => n.toLowerCase().includes(w))); setFolder(null); setOpen(true); setHi(-1);
+            }
+          } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+            e.preventDefault();
+            if (!open) { setOpen(true); return; }
+            setHi((h) => Math.max(0, Math.min(shown.length - 1, h + (e.key === "ArrowDown" ? 1 : -1))));
+          } else if (e.key === "Escape") close();
+        }} />
+      <span aria-hidden="true" className="hint">{cur ? "1 item selected" : "0 items selected"}</span>
+      {open && createPortal(
+        <div role="listbox" aria-label="Options" className="lbox"
+          style={{ position: "absolute", left: (r?.left || 0) + scrollX, top: (r?.bottom || 0) + scrollY, background: "#fff", zIndex: 10 }}
+          onMouseDown={(e) => e.preventDefault()}>
+          {folder && <button type="button" onClick={() => { setFolder(null); setHi(-1); }}>‹ Back</button>}
+          {shown.length ? shown.map(([n, kids], i) => (
+            <div key={n} role="option" aria-selected={cur === n} aria-label={`${n} ${cur === n ? "checked" : "not checked"}`}
+              className={i === hi ? "hi" : ""} onClick={() => pick([n, kids])}>
+              <span>{n}</span>{kids && <span aria-hidden="true"> ›</span>}
+            </div>
+          )) : <div>No Items.</div>}
+        </div>, document.body)}
+    </Row>
+  );
+}
+
+const STUDY = [["Engineering", ["Civil Engineering", "Computer Engineering", "Computer Science", "Electrical Engineering",
+  "Mechanical Engineering"]], ["Business", ["Accounting", "Finance", "Marketing"]],
+  ["Sciences", ["Chemistry", "Mathematics", "Physics"]], ["Arts and Humanities", ["English", "History"]], ["Other", null]];
+const SCHOOLS = ["Anna University", "Bharathiar University", "Chennai Institute of Technology", "Coimbatore Institute of Technology",
+  "Coromandel Institute of Technology, Chennai Campus", "Coromandel Polytechnic College", "Delhi University",
+  "Indian Institute of Science", "Madras Christian College", "Presidency College, Chennai", "PSG College of Technology",
+  "SRM Institute of Science and Technology", "Vellore Institute of Technology"].map((n) => [n, null]);
+
 const LANG_GROUPS = [["Indian languages", ["Bengali", "Hindi", "Kannada", "Malayalam", "Tamil", "Telugu"]],
   ["Other languages", ["Arabic", "English", "French", "German", "Japanese", "Spanish"]]];
 
@@ -371,7 +438,10 @@ export function Workday() {
       <Switch k="wd_relocate" label="Willing to relocate" />
       <TreePrompt k="wd_source" label="How Did You Hear About Us?" required />
       <GroupedListbox k="wd_languages" label="Languages" required />
-      <Actions required={["wd_dob", "wd_auth", "wd_source", "wd_languages"]} last />
+      <h3>Education</h3>
+      <SearchPrompt k="wd_school" label="School or University" required tree={SCHOOLS} />
+      <SearchPrompt k="wd_study" label="Field of Study" required tree={STUDY} />
+      <Actions required={["wd_dob", "wd_auth", "wd_source", "wd_languages", "wd_school", "wd_study"]} last />
     </Shell>
   );
 }

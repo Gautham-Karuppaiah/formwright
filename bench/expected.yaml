@@ -100,6 +100,8 @@ workday:
   wd_relocate: true
   wd_source: LinkedIn
   wd_languages: {set: [English, Hindi, Japanese]}
+  wd_school: "Coromandel Institute of Technology, Chennai Campus"
+  wd_study: Computer Science
 
 sap:
   sap_first: Karthik

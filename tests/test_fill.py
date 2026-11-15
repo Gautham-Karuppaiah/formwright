@@ -155,7 +155,7 @@ class Fill(unittest.TestCase):
         self.assertIn("\n0 ok, 2 not done", reply)
 
     def test_F5_long_form_rows_with_repeated_labels(self):
-        """longform (Ametek's traits): 4 work rows, 1 education row, 3 language rows added by their Add buttons,
+        """longform: 4 work rows, 1 education row, 3 language rows added by their Add buttons,
         every row with the same labels, then ~50 fields (about 40 custom dropdowns, five libraries) in one call,
         each row's fields told apart only by their refs."""
         add = lambda label: ("browser_click", lambda s: {"target": ref(s, "button", label), "element": label})
@@ -231,15 +231,56 @@ class Fill(unittest.TestCase):
         self.assertIn("\n1 ok", reply)
 
     def test_F8_an_error_beside_another_box_is_not_this_ones(self):
-        """html: the mobile box gets a bad value, so its row shows a format error once the tool moves on; the slider set
-        next reports no error (it once
-        carried the mobile box's message, and Haiku took 0 as refused and put 1)."""
+        """html: the mobile box gets a bad value, so its row shows a format error; the slider set next reports no
+        error (an error belongs to the field whose row it is in)."""
         fields = [{"target": "#h_mobile", "value": "12"}, {"target": "#h_years", "value": "0"}]
         state, reply = self.run_page("html", lambda s: fields)
         years = next(line for line in reply.splitlines() if "Years of professional experience" in line)
         self.assertNotIn("the form says", years)
         self.assertEqual(state.get("fields", {}).get("h_years"), 0)
 
+    APPLY = [("browser_click", lambda s: {"target": ref(s, "button", "Apply"), "element": "Apply"}),
+             ("browser_snapshot", {}),
+             ("browser_click", lambda s: {"target": ref(s, "menuitem", "Apply Manually"), "element": "Apply Manually"})]
+
+    def test_F9_text_that_is_only_a_search_is_not_ok(self):
+        """workday: pickers drawn as plain text boxes with no dropdown markers; typed text is only a search and the
+        page drops it when the box is left. Nothing is picked, so no line may say ok."""
+        def fields(s):
+            return [{"target": ref(s, "textbox", "School or University"), "value": "Coromandel Institute of Technology, Chennai Campus"},
+                    {"target": ref(s, "textbox", "Field of Study"), "value": "Computer Science"}]
+        state, reply = self.run_page("workday", fields, before=self.APPLY)
+        self.assertIn("\n0 ok", reply)
+        self.assertIn("until the tool left it", reply)
+
+    def test_F10_one_radio_given_its_own_label_is_chosen(self):
+        """workday: the radio "No" given "No" is chosen; the radio "Yes" given false can't be unticked: not ok."""
+        def fields(s):
+            return [{"target": ref(s, "radio", "No"), "value": "No"},
+                    {"target": ref(s, "radio", "Yes"), "value": False}]
+        state, reply = self.run_page("workday", fields, before=self.APPLY)
+        self.assertEqual((state.get("fields") or {}).get("wd_auth"), "No", reply)
+        self.assertIn("\n1 ok, 0 not done, 1 unsure", reply)
+
+    def test_F11_what_an_input_changed_elsewhere_is_reported(self):
+        """address: picking a country makes the State field appear; the Country line says so."""
+        def fields(s):
+            return [{"target": ref(s, "combobox", "Country"), "name": "Country", "value": "India"}]
+        state, reply = self.run_page("address", fields)
+        line = next(x for x in reply.splitlines() if x.startswith(("ok Country", "UNSURE Country", "NOT DONE Country")))
+        self.assertIn("new fields appeared", line)
+        self.assertIn("State", line)
+
+
+    def test_F12_radio_divs_and_a_list_shown_on_the_page(self):
+        """workday: a radio group of role=radio divs named by their own text, and a multi-select listbox drawn on
+        the page (not a popup) with options in groups."""
+        def fields(s):
+            return [{"target": ref(s, "radiogroup", "Are you legally authorized"), "value": "Yes"},
+                    {"target": ref(s, "listbox", "Languages"), "value": ["English", "Hindi", "Japanese"]}]
+        state, reply = self.run_page("workday", fields, before=self.APPLY)
+        self.assertGradedOnly("workday", state, reply, {"wd_auth", "wd_languages"})
+        self.assertIn("\n2 ok", reply)
 
 if __name__ == "__main__":
     unittest.main()

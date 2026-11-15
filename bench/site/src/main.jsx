@@ -6,13 +6,14 @@ import { Applied, Asks, Groups, Html, IcimsInner, IcimsOuter, Oracle, Refuse, Sa
 import { Dropzone, Hidden } from "./scenarios4";
 import { Longform } from "./scenarios5";
 import { Modal } from "./scenarios6";
+import { Traps, TRAPS_INITIAL } from "./scenarios7";
 import "./style.css";
 
 const SCENARIOS = { basics: Basics, widgets: Widgets, address: Address, experience: Experience, languages: Languages, wizard: Wizard,
   oracle: Oracle, workday: Workday, sap: Sap, icims: IcimsInner, sections: Sections, html: Html, widgets2: Widgets2,
   groups: Groups, asks: Asks, refuse: Refuse, applied: Applied,
-  hidden: Hidden, dropzone: Dropzone, longform: Longform, modal: Modal };
-const INITIAL = { experience: EXPERIENCE_INITIAL, languages: LANGUAGES_INITIAL, widgets2: WIDGETS2_INITIAL };
+  hidden: Hidden, dropzone: Dropzone, longform: Longform, modal: Modal, traps: Traps };
+const INITIAL = { experience: EXPERIENCE_INITIAL, languages: LANGUAGES_INITIAL, widgets2: WIDGETS2_INITIAL, traps: TRAPS_INITIAL };
 
 function App() {
   const s = Q.get("s");

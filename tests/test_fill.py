@@ -32,13 +32,14 @@ def ref(snap, role, name, nth=0):
     return ms[nth].group(1)
 
 
-async def session(calls, tmp):
+async def session(calls, tmp, env=None):
     """calls: list of (tool, args or fn(last snapshot) -> args). Returns the reply texts."""
     from mcp import ClientSession
     from mcp.client.stdio import StdioServerParameters, stdio_client
     argv = pwmcp.command(*OPTS)
     server = StdioServerParameters(command=argv[0], args=argv[1:], cwd=tmp,
-                                   env={**os.environ, "FORMWRIGHT_MCP_TOOLS": "formwright_fill", "FORMWRIGHT_FILL_DEBUG": "1"})
+                                   env={**os.environ, "FORMWRIGHT_MCP_TOOLS": "formwright_fill", "FORMWRIGHT_FILL_DEBUG": "1",
+                                        **(env or {})})
     out, snap = [], ""
     async with stdio_client(server) as (read, write):
         async with ClientSession(read, write) as client:
@@ -64,9 +65,9 @@ class Fill(unittest.TestCase):
     def tearDownClass(cls):
         cls.srv.close()
 
-    def run_page(self, scenario, fields, redraw=False, before=()):
+    def run_page(self, scenario, fields, redraw=False, before=(), after=(), env=None):
         """Open the scenario, make the calls in `before` (clicks that add rows), one formwright_fill call with
-        fields(snapshot) -> list; the page's record of its fields and the reply."""
+        fields(snapshot) -> list, then the calls in `after`; the page's record of its fields and the fill reply."""
         run = f"fill-{scenario}-{redraw}-{time.time_ns()}"
         status(f"formwright_fill on {scenario}{' redraw' if redraw else ''}")
         with tempfile.TemporaryDirectory() as tmp:
@@ -76,10 +77,11 @@ class Fill(unittest.TestCase):
                 *before,
                 ("browser_snapshot", {}),
                 ("formwright_fill", lambda s: {"fields": fields(s)}),
+                *after,
                 ("browser_wait_for", {"time": 1}),     # the page reports its fields 80 ms after a change
-            ], tmp))
+            ], tmp, env))
         time.sleep(1.0)
-        reply = out[-2]
+        reply = out[-2 - len(after)]
         print(f"\n--- {scenario}{' redraw' if redraw else ''}\n{reply}")
         return self.srv.states.get(run) or {}, reply
 
@@ -302,6 +304,143 @@ class Fill(unittest.TestCase):
         state, reply = self.run_page("modal", fields, before=open_)
         self.assertGraded("modal", state, reply)
         self.assertIn("\n6 ok, 0 not done, 0 unsure", reply)
+
+    # ---- traps: each one a way the tool could say ok wrongly or change what nobody asked it to ----
+
+    def trap(self, fields, **kw):
+        """Fill on the traps page; the page's fields and the reply. The page is a dialog that Escape closes: it
+        must still be open afterwards."""
+        state, reply = self.run_page("traps", fields, **kw)
+        f = state.get("fields") or {}
+        self.assertIsNot(f.get("tr_dialog"), False, f"the dialog was closed\n{reply}")
+        return f, reply
+
+    def line(self, reply, name):
+        return next(x for x in reply.splitlines() if re.match(rf"(ok|NOT DONE|UNSURE) {re.escape(name)}\b", x))
+
+    def test_T1_no_list_means_no_escape(self):
+        """A type-ahead with no results never shows a list: closing a list that isn't there would close the dialog."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "combobox", "Current city"), "name": "Current city", "value": "Atlantis"}])
+        self.assertTrue(self.line(reply, "Current city").startswith("NOT DONE"), reply)
+        self.assertFalse(f.get("tr_city"), reply)
+
+    def test_T2_a_section_of_several_questions_is_refused(self):
+        """A section holding two yes/no questions and a ticked box, given "Yes": nothing is touched, the reply
+        says it holds several questions."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "group", "Work eligibility"), "name": "Work eligibility", "value": "Yes"}])
+        self.assertTrue(self.line(reply, "Work eligibility").startswith("NOT DONE"), reply)
+        self.assertIs(f.get("tr_consent"), True, reply)
+        self.assertFalse(f.get("tr_auth"), reply)
+        self.assertFalse(f.get("tr_spons"), reply)
+
+    def test_T3_a_radio_given_another_options_text(self):
+        """Radios with no group around them: the radio "Male" given "Female" chooses Female, never Male."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "radio", "Male"), "name": "Gender", "value": "Female"}])
+        self.assertEqual(f.get("tr_sex"), "Female", reply)
+        self.assertTrue(self.line(reply, "Gender").startswith("ok"), reply)
+
+    def test_T4_keys_go_only_to_the_field(self):
+        """A box that takes the focus back while invalid: the next field's typing must not land in it."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "textbox", "PIN code"), "name": "PIN code", "value": "12"},
+                                        {"target": ref(s, "combobox", "Preferred city"), "name": "Preferred city", "value": "Chennai"}])
+        self.assertEqual(f.get("tr_pin"), "12", reply)
+        self.assertFalse(self.line(reply, "Preferred city").startswith("ok") and f.get("tr_pref") != "Chennai", reply)
+
+    def test_T5_a_field_past_its_time_stops_acting(self):
+        """A slow slider that runs out of time: after the reply, a radio the model clicks keeps its choice (no arrow
+        keys still being pressed)."""
+        f, reply = self.trap(
+            lambda s: [{"target": ref(s, "slider", "Distance you can travel"), "name": "Distance", "value": "500"}],
+            env={"FORMWRIGHT_FILL_FIELD_MS": "1500"},
+            after=[("browser_click", lambda s: {"target": ref(s, "radio", "Afternoon"), "element": "Afternoon"}),
+                   ("browser_wait_for", {"time": 3})])
+        self.assertIn("TIMEOUT", reply)
+        self.assertEqual(f.get("tr_slot"), "Afternoon", reply)
+
+    def test_T6_options_of_another_list_are_not_this_fields(self):
+        """A list always shown on the page and a type-ahead whose own list appears only with results: "Night" is
+        in the page's list, not the type-ahead's; the page's list keeps its choice."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "combobox", "Team"), "name": "Team", "value": "Night"}])
+        self.assertEqual(f.get("tr_shift"), "Morning", reply)
+        self.assertFalse(f.get("tr_team"), reply)
+        self.assertFalse(self.line(reply, "Team").startswith("ok"), reply)
+
+    def test_T7_an_upload_button_uses_only_its_own_rows_input(self):
+        """The résumé button's input is elsewhere; the cover-letter row has its own: nothing is attached to it."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "button", "Upload résumé"), "name": "Résumé", "value": str(RESUME)}])
+        self.assertFalse(f.get("tr_cover"), reply)
+        self.assertFalse(self.line(reply, "Résumé").startswith("ok") and f.get("tr_resume") != RESUME.name, reply)
+
+    def test_T8_a_shown_option_containing_the_answer_is_not_it(self):
+        """A locked dropdown showing "Female", answer "Male": not ok, still Female."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "combobox", "Gender on file"), "name": "Gender on file", "value": "Male"}])
+        self.assertEqual(f.get("tr_lock"), "Female", reply)
+        self.assertFalse(self.line(reply, "Gender on file").startswith("ok"), reply)
+
+    def test_T9_a_multi_select_missing_an_answer_is_not_ok(self):
+        """A native multi-select given one option it has and one it hasn't."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "listbox", "Languages you speak"), "name": "Languages", "value": ["English", "Klingon"]}])
+        self.assertEqual(f.get("tr_langs"), ["English"], reply)
+        self.assertFalse(self.line(reply, "Languages").startswith("ok"), reply)
+
+    def test_T10_a_date_box_cleared_on_leaving_is_not_ok(self):
+        """The page clears a date before the first allowed one when the box is left."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "textbox", "Earliest start date"), "name": "Earliest start date", "value": "2026-11-20"}])
+        self.assertFalse(f.get("tr_start"), reply)
+        self.assertFalse(self.line(reply, "Earliest start date").startswith("ok"), reply)
+
+    def test_T11_an_error_the_field_shows_after_the_input_is_not_ok(self):
+        """The box shows "Enter a 10-digit mobile number." under itself once left holding 5 digits: at most unsure."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "textbox", "Mobile number"), "name": "Mobile number", "value": "12345"}])
+        self.assertFalse(self.line(reply, "Mobile number").startswith("ok"), reply)
+        self.assertIn("10-digit", reply)
+
+    def test_T12_choices_offered_and_none_taken_is_not_ok(self):
+        """A plain box whose typing shows suggestions, none exactly the answer; the box keeps the typed text but only
+        a picked suggestion counts."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "textbox", "Location"), "name": "Location", "value": "Chennai"}])
+        self.assertFalse(f.get("tr_loc"), reply)
+        self.assertFalse(self.line(reply, "Location").startswith("ok"), reply)
+
+    def test_T13_an_upload_button_never_takes_a_visible_file_input(self):
+        """The portfolio button's input is elsewhere; the next row is a plain file input of its own: nothing is
+        attached to it."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "button", "Upload portfolio"), "name": "Portfolio", "value": str(RESUME)}])
+        self.assertFalse(f.get("tr_sample"), reply)
+        self.assertFalse(self.line(reply, "Portfolio").startswith("ok") and f.get("tr_portfolio") != RESUME.name, reply)
+
+    def test_T14_a_disabled_option_or_box_is_not_clicked(self):
+        """"Monday" is a disabled option and the newsletter box is disabled; both still take a click if one is
+        forced. Neither changes, neither is ok."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "combobox", "Interview day"), "name": "Interview day", "value": "Monday"},
+                                        {"target": ref(s, "checkbox", "Subscribe to the newsletter"), "name": "Newsletter", "value": True}])
+        self.assertFalse(f.get("tr_day"), reply)
+        self.assertFalse(f.get("tr_news"), reply)
+        self.assertFalse(self.line(reply, "Interview day").startswith("ok"), reply)
+        self.assertFalse(self.line(reply, "Newsletter").startswith("ok"), reply)
+
+    def test_T15_an_error_that_comes_later_is_not_ok(self):
+        """The email box is checked by the server after it is left; the error shows while the next field is filled."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "textbox", "Email"), "name": "Email", "value": "taken@example.com"},
+                                        {"target": ref(s, "textbox", "Referral code"), "name": "Referral code", "value": "ABC123"}])
+        self.assertFalse(self.line(reply, "Email").startswith("ok"), reply)
+        self.assertIn("already registered", reply)
+
+    def test_T16_an_option_text_shown_twice_is_not_picked(self):
+        """"Hyderabad" under two headings; "Other" under two option groups of a native select: no pick, not ok."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "combobox", "City of the office"), "name": "City of the office", "value": "Hyderabad"},
+                                        {"target": ref(s, "combobox", "Department"), "name": "Department", "value": "Other"}])
+        self.assertFalse(f.get("tr_where"), reply)
+        self.assertFalse(f.get("tr_dept"), reply)
+        self.assertFalse(self.line(reply, "City of the office").startswith("ok"), reply)
+        self.assertFalse(self.line(reply, "Department").startswith("ok"), reply)
+
+    def test_T17_a_group_showing_an_error_after_the_choice_is_not_ok(self):
+        """Choosing "No" makes the question's own group say it rules the applicant out: at most unsure."""
+        f, reply = self.trap(lambda s: [{"target": ref(s, "group", "Can you work from the Chennai office"), "name": "Office", "value": "No"}])
+        self.assertEqual(f.get("tr_office"), "No", reply)
+        self.assertFalse(self.line(reply, "Office").startswith("ok"), reply)
+
 
 if __name__ == "__main__":
     unittest.main()

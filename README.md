@@ -21,7 +21,7 @@ pip install -e . && patchright install chromium
 claude mcp add browser -- /path/to/.venv/bin/fw mcp --browser chrome
 ```
 
-`fw mcp` accepts Playwright MCP's usual options.
+On Windows the command is `.venv\Scripts\fw.exe`. `fw mcp` accepts Playwright MCP's usual options.
 
 ## Practice forms
 

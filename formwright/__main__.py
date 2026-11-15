@@ -13,6 +13,9 @@ def main(argv):
         from . import pwmcp
         os.environ.setdefault("FORMWRIGHT_MCP_TOOLS", "formwright_fill")
         cmd = pwmcp.command(*argv[1:])
+        if os.name == "nt":                 # execv on Windows starts a new process and exits: the client loses stdio
+            import subprocess
+            return subprocess.call(cmd)
         os.execv(cmd[0], cmd)
     if argv and argv[0] == "bench":
         from . import bench

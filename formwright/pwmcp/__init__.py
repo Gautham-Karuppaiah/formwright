@@ -18,4 +18,5 @@ def command(*args, driver=None):
     driver "playwright" (or FORMWRIGHT_PW_DRIVER=playwright): plain Playwright's driver, to tell Patchright's
     differences apart."""
     d = Path(importlib.import_module(driver or os.environ.get("FORMWRIGHT_PW_DRIVER", "patchright")).__file__).parent
-    return [str(d / "driver" / "node"), str(SERVER), str(d / "driver" / "package"), *args]
+    node = d / "driver" / ("node.exe" if os.name == "nt" else "node")
+    return [str(node), str(SERVER), str(d / "driver" / "package"), *args]

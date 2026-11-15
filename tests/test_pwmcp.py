@@ -13,7 +13,7 @@ import threading
 import unittest
 from pathlib import Path
 
-from formwright import plain, pwmcp
+from formwright import exe, plain, pwmcp
 
 try:                                        # the status band when run as a runjob job
     import sys
@@ -109,8 +109,8 @@ async def run_server(argv, base, port, tmp):
 @unittest.skipUnless(os.environ.get("FORMWRIGHT_BROWSER_TESTS") == "1", "needs a browser: FORMWRIGHT_BROWSER_TESTS=1")
 class SameAsPlaywrightMCP(unittest.TestCase):
     """On plain Playwright's driver the replies are npx MCP's exactly. On Patchright's (what formwright uses) two are
-    known to differ, both Patchright's doing: an alert() is gone by the call after the one that
-    reported it, so handle_dialog finds no dialog; after going back to a page with an iframe, the iframe is empty."""
+    known to differ, both Patchright's doing: an alert() is gone a call or two after the click that opened it, so
+    the next snapshot doesn't report it or handle_dialog finds no dialog; after going back to a page with an iframe, the iframe is empty."""
 
     @classmethod
     def setUpClass(cls):
@@ -119,7 +119,7 @@ class SameAsPlaywrightMCP(unittest.TestCase):
         threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
         cls.port = cls.httpd.server_address[1]
         cls.base = f"http://127.0.0.1:{cls.port}"
-        cls.theirs = cls.serve(["npx", "-y", plain.MCP, *OPTS])
+        cls.theirs = cls.serve([exe("npx"), "-y", plain.MCP, *OPTS])
 
     @classmethod
     def tearDownClass(cls):
@@ -143,7 +143,9 @@ class SameAsPlaywrightMCP(unittest.TestCase):
 
     def test_on_patchright_driver_only_the_known_differences(self):
         calls = [t for t, _ in script(self.base)]
-        known = {calls.index("browser_handle_dialog"), len(calls) - 1}
+        # the alert is gone by the snapshot after the click or by handle_dialog, depending on timing
+        dialog = calls.index("browser_handle_dialog")
+        known = {dialog - 1, dialog, len(calls) - 1}
         diffs = self.differing(self.serve(pwmcp.command(*OPTS)))
         self.assertFalse(set(diffs) - known, "\n\n".join(v for i, v in diffs.items() if i not in known))
 

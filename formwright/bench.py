@@ -38,7 +38,11 @@ RUNS = BENCH / "runs"
 SCENARIOS = ["basics", "widgets", "address", "experience", "languages", "wizard", "oracle", "workday", "sap", "icims",
              "sections", "html", "widgets2", "groups", "asks", "refuse", "applied", "hidden",
              "dropzone", "longform", "trapform"]
+EXTRA = ["bigform"]       # run only when named: long and costly, for measuring long runs rather than every bench
 CASE_TIMEOUT = 15 * 60
+
+
+SLOW_FIRST = {"bigform", "longform", "widgets2", "trapform"}
 
 
 def jobstatus():
@@ -307,16 +311,24 @@ def main(args):
     model = next((a.split("=", 1)[1] for a in args if a.startswith(("--model=", "--plain="))), "haiku")
     submit = "--dry" not in args      # --submit (the old flag) is the default now
     names = [a for a in args if not a.startswith("--")] or SCENARIOS
-    bad = [n for n in names if n not in SCENARIOS]
+    bad = [n for n in names if n not in SCENARIOS + EXTRA]
     if bad:
         print(f"unknown form {bad}; have {SCENARIOS}", file=sys.stderr)
         return 2
     build()
-    out = RUNS / time.strftime("%m%d-%H%M%S")
-    out.mkdir(parents=True)
+    stamp = time.strftime("%m%d-%H%M%S")
+    RUNS.mkdir(parents=True, exist_ok=True)
+    for n in range(1, 100):                      # benches started in the same second each get their own folder
+        out = RUNS / (stamp if n == 1 else f"{stamp}-{n}")
+        try:
+            out.mkdir()
+            break
+        except FileExistsError:
+            continue
     srv = Server()
     results = []
-    cases = [(n, r) for n in names for r in redraws]
+    # the longest forms first, so the run doesn't end waiting on one of them alone
+    cases = sorted([(n, r) for n in names for r in redraws], key=lambda c: c[0] not in SLOW_FIRST)
     track, status = jobstatus()
     jobs = next((int(a.split("=", 1)[1]) for a in args if a.startswith("--jobs=")), 1)
     lock = threading.Lock()

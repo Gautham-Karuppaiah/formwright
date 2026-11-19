@@ -293,7 +293,7 @@ function Switch({ k, label }) {
   );
 }
 
-const SOURCES = [["Job Board", ["LinkedIn", "Naukri", "Indeed"]], ["Company Website", null],
+export const SOURCES = [["Job Board", ["LinkedIn", "Naukri", "Indeed"]], ["Company Website", null],
   ["Referral", ["Employee Referral", "Friend or Family"]], ["Social Media", ["Instagram", "X (Twitter)"]]];
 
 function TreePrompt({ k, label, required }) {
@@ -330,7 +330,7 @@ function TreePrompt({ k, label, required }) {
 // A picker that doesn't say it is one: a plain text box (no combobox role, aria-haspopup, aria-controls or
 // aria-expanded) whose typed text is only a search. A click opens an option list elsewhere in the page; some
 // options are folders holding others. Enter searches. A pick shows as a chip; leaving the box clears unpicked text.
-function SearchPrompt({ k, label, required, tree }) {
+export function SearchPrompt({ k, label, required, tree }) {
   const { fields, set, meta } = useForm();
   const [q, setQ] = useKept(`SearchPrompt.q.${k}`, "");
   const [open, setOpen] = useKept(`SearchPrompt.open.${k}`, false);
@@ -386,10 +386,10 @@ function SearchPrompt({ k, label, required, tree }) {
   );
 }
 
-const STUDY = [["Engineering", ["Civil Engineering", "Computer Engineering", "Computer Science", "Electrical Engineering",
+export const STUDY = [["Engineering", ["Civil Engineering", "Computer Engineering", "Computer Science", "Electrical Engineering",
   "Mechanical Engineering"]], ["Business", ["Accounting", "Finance", "Marketing"]],
   ["Sciences", ["Chemistry", "Mathematics", "Physics"]], ["Arts and Humanities", ["English", "History"]], ["Other", null]];
-const SCHOOLS = ["Anna University", "Bharathiar University", "Chennai Institute of Technology", "Coimbatore Institute of Technology",
+export const SCHOOLS = ["Anna University", "Bharathiar University", "Chennai Institute of Technology", "Coimbatore Institute of Technology",
   "Coromandel Institute of Technology, Chennai Campus", "Coromandel Polytechnic College", "Delhi University",
   "Indian Institute of Science", "Madras Christian College", "Presidency College, Chennai", "PSG College of Technology",
   "SRM Institute of Science and Technology", "Vellore Institute of Technology"].map((n) => [n, null]);

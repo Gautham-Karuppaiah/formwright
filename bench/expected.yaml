@@ -280,3 +280,191 @@ trapform:              # the traps page's traits as one application; pre-set ans
   tr_start: {monday_after_next: true}
   tr_mobile: {digits: "9000011122"}
   tr_loc: "Chennai, Tamil Nadu, India"
+
+bigform:               # long because the application is: thirteen steps, ~215 answers, a review page
+  account_ok: true
+  signed_in_again: true          # the step-1 password, asked again before sending
+  first_name: Karthik
+  middle_name: absent
+  last_name: Raman
+  dob: {dict: {Day: "14", Month: "10", Year: "2003"}}
+  gender: Male
+  marital: Single
+  nationality: Indian
+  category: General
+  email: karthik.raman@example.com
+  phone_code: "India (+91)"
+  phone: {digits: "9000011122"}
+  linkedin: {contains: linkedin.com/in/karthik-raman-dev}
+  github: {contains: github.com/karthik-raman-dev}
+  cur_line1: {contains: Lotus Residency}
+  cur_line2: {either: [{contains: Thoraipakkam}, absent]}
+  cur_country: India
+  cur_state: Tamil Nadu
+  cur_city: Chennai
+  cur_pincode: "600097"
+  perm_line1: {contains: Lotus Residency}
+  perm_line2: {either: [{contains: Thoraipakkam}, absent]}
+  perm_country: India
+  perm_state: Tamil Nadu
+  perm_city: Chennai
+  perm_pincode: "600097"
+  x_board: CBSE
+  x_school: {contains: Lakeview Public School}
+  x_year: "2020"
+  x_percent: {number: 91.6}
+  xii_board: CBSE
+  xii_school: {contains: Lakeview Public School}
+  xii_year: "2022"
+  xii_percent: {number: 78.4}
+  deg: B.E.
+  deg_branch: Computer Science
+  deg_college: "Coromandel Institute of Technology, Chennai Campus"
+  deg_start: "2022"
+  deg_end: "2026"
+  deg_scale: CGPA out of 10
+  deg_score: {number: 8.2}
+  resume: {suffix: ".pdf"}
+  work:
+    entries:
+      - {title: Software Developer Intern, company: Halcyon Byteworks, location: {contains: Dubai}, start_month: January, start_year: "2026", end_month: July, end_year: "2026", description: {contains: fixture}}
+      - {title: Cyber-Security Intern, company: Riverbend Labs, location: {contains: Chennai}, start_month: June, start_year: "2025", end_month: August, end_year: "2025", description: {contains: SIEM}}
+      - {title: ML Intern, company: Bluefin Analytics, location: {contains: Dubai}, start_month: June, start_year: "2024", end_month: August, end_year: "2024", description: {contains: forecasting}}
+      - {title: Cloud Computing Intern, company: Kaveri Finance Services, location: {contains: Chennai}, start_month: August, start_year: "2024", end_month: August, end_year: "2024", description: {contains: EC2}}
+  projects: {nonempty: true}     # which projects to list is the applicant's call; the page checks each row is complete
+  languages:
+    entries:
+      - {language: English, speaking: Native or Bilingual Proficiency, reading: Native or Bilingual Proficiency, writing: Native or Bilingual Proficiency}
+      - {language: Hindi, speaking: Native or Bilingual Proficiency, reading: Native or Bilingual Proficiency, writing: Native or Bilingual Proficiency}
+      - {language: Japanese, speaking: Elementary Proficiency, reading: Elementary Proficiency, writing: Elementary Proficiency}
+  skills: {contains: Python}
+  # hands-on experience: Yes only for what the resume names
+  sk_python: "Yes"
+  sk_cpp: "Yes"
+  sk_java: "No"
+  sk_typescript: "Yes"
+  sk_javascript: "Yes"
+  sk_go: "No"
+  sk_rust: "No"
+  sk_kotlin: "No"
+  sk_csharp: "No"
+  sk_sql: "Yes"
+  sk_php: "No"
+  sk_ruby: "No"
+  sk_html_css: "Yes"
+  sk_matlab: "No"
+  sk_node_js: "Yes"
+  sk_express: "Yes"
+  sk_django: "No"
+  sk_spring_boot: "No"
+  sk_react: "Yes"
+  sk_angular: "No"
+  sk_vue: "No"
+  sk_tailwind_css: "Yes"
+  sk_pyqt6: "Yes"
+  sk_flutter: "No"
+  sk_rest_apis: "Yes"
+  sk_postgresql: "Yes"
+  sk_sqlite: "Yes"
+  sk_mongodb: "No"
+  sk_redis: "No"
+  sk_kafka: "No"
+  sk_websockets: "Yes"
+  sk_aws: "Yes"
+  sk_azure: "No"
+  sk_google_cloud: "No"
+  sk_docker: "Yes"
+  sk_kubernetes: "No"
+  sk_terraform: "No"
+  sk_linux: "Yes"
+  sk_git: "Yes"
+  sk_github_actions: "Yes"
+  sk_jenkins: "No"
+  sk_tensorflow: "Yes"
+  sk_pytorch: "No"
+  sk_scikit_learn: "Yes"
+  sk_numpy: "Yes"
+  sk_pandas: "Yes"
+  sk_apache_spark: "No"
+  sk_selenium: "No"
+  sk_ros: "No"
+  sk_hadoop: "No"
+  # resume: Nginx (Kaveri), WebAssembly (fixture counter), pen testing + SIEM (Riverbend), load balancing (Kaveri),
+  # forecasting + neural networks (Bluefin), real-time multiplayer (chess), self-hosted (home server), PDF/CSV (price lists)
+  sk_swift: "No"
+  sk_scala: "No"
+  sk_r: "No"
+  sk_perl: "No"
+  sk_elixir: "No"
+  sk_haskell: "No"
+  sk_next_js: "No"
+  sk_svelte: "No"
+  sk_fastapi: "No"
+  sk_flask: "No"
+  sk_laravel: "No"
+  sk__net: "No"
+  sk_graphql: "No"
+  sk_grpc: "No"
+  sk_mysql: "No"
+  sk_oracle_database: "No"
+  sk_cassandra: "No"
+  sk_elasticsearch: "No"
+  sk_rabbitmq: "No"
+  sk_ansible: "No"
+  sk_prometheus: "No"
+  sk_grafana: "No"
+  sk_opencv: "No"
+  sk_nginx: "Yes"
+  sk_webassembly: "Yes"
+  sk_penetration_testing: "Yes"
+  sk_siem_and_log_monitoring: "Yes"
+  sk_load_balancing: "Yes"
+  sk_demand_forecasting: "Yes"
+  sk_neural_networks: "Yes"
+  sk_computer_vision: "No"
+  sk_slam: "No"
+  sk_embedded_c: "No"
+  sk_rtos: "No"
+  sk_can_bus: "No"
+  sk_plc_programming: "No"
+  sk_cuda: "No"
+  sk_fpga_design: "No"
+  sk_mobile_app_development: "No"
+  sk_blockchain: "No"
+  sk_augmented_reality: "No"
+  sk_real_time_multiplayer_systems: "Yes"
+  sk_self_hosted_servers: "Yes"
+  sk_extracting_data_from_pdf_and_csv_files: "Yes"
+  # he can work anywhere: every location ticked; preferred = the listing's own city
+  loc_chennai: true
+  loc_bengaluru: true
+  loc_hyderabad: true
+  loc_pune: true
+  loc_mumbai: true
+  loc_noida: true
+  loc_kolkata: true
+  loc_coimbatore: true
+  loc_kochi: true
+  loc_ahmedabad: true
+  pref_loc: Chennai
+  remote: "Yes"
+  office_days: "5"
+  start: Immediately
+  relocate: "Yes"
+  notice: Immediate
+  experience: Fresher
+  current_ctc: {number: 0}
+  expected_ctc: {number: 5}
+  sponsorship: "No"
+  worked_before: "No"
+  relatives: "No"
+  convicted: "No"
+  noncompete: "No"
+  source: LinkedIn
+  referred: "No"
+  referrer: absent
+  disability: "No"
+  veteran: "No"
+  alerts: absent
+  privacy: true
+  certify: true

@@ -8,12 +8,13 @@ import { Longform } from "./scenarios5";
 import { Modal } from "./scenarios6";
 import { Traps, TRAPS_INITIAL } from "./scenarios7";
 import { Trapform, TRAPFORM_INITIAL } from "./scenarios8";
+import { Bigform } from "./scenarios9";
 import "./style.css";
 
 const SCENARIOS = { basics: Basics, widgets: Widgets, address: Address, experience: Experience, languages: Languages, wizard: Wizard,
   oracle: Oracle, workday: Workday, sap: Sap, icims: IcimsInner, sections: Sections, html: Html, widgets2: Widgets2,
   groups: Groups, asks: Asks, refuse: Refuse, applied: Applied,
-  hidden: Hidden, dropzone: Dropzone, longform: Longform, modal: Modal, traps: Traps, trapform: Trapform };
+  hidden: Hidden, dropzone: Dropzone, longform: Longform, modal: Modal, traps: Traps, trapform: Trapform, bigform: Bigform };
 const INITIAL = { experience: EXPERIENCE_INITIAL, languages: LANGUAGES_INITIAL, widgets2: WIDGETS2_INITIAL, traps: TRAPS_INITIAL, trapform: TRAPFORM_INITIAL };
 
 function App() {

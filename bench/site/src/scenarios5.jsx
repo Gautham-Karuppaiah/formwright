@@ -8,10 +8,10 @@ import { Check, Down, File, Headless, MuiAuto, MuiSel, RSelect, Text } from "./w
 import { useForm } from "./store";
 import { COUNTRIES, LANGUAGES, MONTHS, PROFICIENCY, STATES, YEARS } from "./data";
 
-const CITY_LIST = ["Chennai", "Chennai Free Trade Zone", "Coimbatore", "Madurai", "Bengaluru", "Hyderabad", "Mumbai", "Pune"];
+export const CITY_LIST = ["Chennai", "Chennai Free Trade Zone", "Coimbatore", "Madurai", "Bengaluru", "Hyderabad", "Mumbai", "Pune"];
 
 // A list of rows: an Add button appends an empty row in place; each row has the same fields.
-function Rows({ k, title, add, cols }) {
+export function Rows({ k, title, add, cols }) {
   const { fields, set, meta } = useForm();
   const list = fields[k] || [];
   const put = (id, c, v) => set(k, (l) => (l || []).map((r) => (r.id === id ? { ...r, [c]: v } : r)));
@@ -35,7 +35,7 @@ function Rows({ k, title, add, cols }) {
   );
 }
 
-const WORK = [
+export const WORK = [
   { c: "title", label: "Job Title", W: Text },
   { c: "company", label: "Company", W: Text },
   { c: "start_month", label: "Start Month", W: RSelect, options: MONTHS },
@@ -43,14 +43,14 @@ const WORK = [
   { c: "end_month", label: "End Month", W: RSelect, options: MONTHS },
   { c: "end_year", label: "End Year", W: RSelect, options: YEARS },
 ];
-const EDUCATION = [
+export const EDUCATION = [
   { c: "school", label: "School", W: Text },
   { c: "degree", label: "Degree", W: MuiAuto, options: ["High School", "Associate", "Bachelors", "Masters", "Doctorate"] },
   { c: "major", label: "Major", W: Headless, options: ["Computer Science", "Electrical Engineering", "Electronics and Communication",
     "Information Technology", "Mechanical Engineering", "Mathematics"] },
   { c: "year", label: "Graduation Year", W: RSelect, options: YEARS },
 ];
-const LANGS = [
+export const LANGS = [
   { c: "language", label: "Language", W: RSelect, options: LANGUAGES },
   { c: "speaking", label: "Speaking Proficiency", W: MuiSel, options: PROFICIENCY },
   { c: "reading", label: "Reading Proficiency", W: MuiSel, options: PROFICIENCY },

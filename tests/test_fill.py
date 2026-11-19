@@ -9,6 +9,7 @@ import re
 import tempfile
 import time
 import unittest
+import urllib.parse
 
 from formwright import BENCH_PROFILE, bench, pwmcp
 
@@ -39,6 +40,7 @@ async def session(calls, tmp, env=None):
     argv = pwmcp.command(*OPTS)
     server = StdioServerParameters(command=argv[0], args=argv[1:], cwd=tmp,
                                    env={**os.environ, "FORMWRIGHT_MCP_TOOLS": "formwright_fill", "FORMWRIGHT_FILL_DEBUG": "1",
+                                        "FORMWRIGHT_PAGE_CODE": "1",  # the tests read the page back
                                         **(env or {})})
     out, snap = [], ""
     async with stdio_client(server) as (read, write):
@@ -441,6 +443,69 @@ class Fill(unittest.TestCase):
         self.assertEqual(f.get("tr_office"), "No", reply)
         self.assertFalse(self.line(reply, "Office").startswith("ok"), reply)
 
+    def test_F13_a_label_with_a_required_mark_is_found_among_longer_ones(self):
+        """Labels "Password*" and "Verify New Password*": the target "Password" by its label is the first box only."""
+        page = ("data:text/html,<label for=p>Password*</label><input id=p type=password>"
+                "<label for=v>Verify New Password*</label><input id=v type=password>")
+        with tempfile.TemporaryDirectory() as tmp:
+            out = asyncio.run(session([
+                ("browser_navigate", {"url": page}),
+                ("formwright_fill", {"fields": [{"target": 'textbox "Password"', "name": "Password", "value": "Abc!2345"}]}),
+                ("browser_evaluate", {"function": "() => [p.value, v.value].join('|')"}),
+            ], tmp))
+        self.assertIn("\nok Password", out[1])
+        self.assertIn('"Abc!2345|"', out[2])
+
+
+    # Only what a person can do. Each page logs every click and change as trusted (a real input) or made by a script;
+    # one made by a script is a fail even when the box ends up right.
+    # kept in the page's DOM: browser_evaluate runs apart from the page's own scripts and can't see its variables
+    LOG = ("<script>for(const t of ['click','change'])document.addEventListener(t,e=>"
+           "document.documentElement.dataset.log=(document.documentElement.dataset.log||'')+t+':'+"
+           "(e.isTrusted?'person':'script')+' ',true)</script>")
+
+    def human(self, body, field):
+        with tempfile.TemporaryDirectory() as tmp:
+            out = asyncio.run(session([
+                ("browser_navigate", {"url": "data:text/html," + urllib.parse.quote(self.LOG + body)}),
+                ("browser_snapshot", {}),
+                ("formwright_fill", lambda snap: {"fields": [field(snap) if callable(field) else field]}),
+                ("browser_evaluate", {"function": "() => JSON.stringify([document.querySelector('#c').checked, document.documentElement.dataset.log || ''])"}),
+            ], tmp))
+        return out[2], out[3]
+
+    def test_H1_box_under_its_own_styling_is_ticked_by_its_label(self):
+        """The real box is drawn over by a styled stand-in: a person clicks the label, never the box by script."""
+        reply, state = self.human(
+            "<label for=c style='position:relative;display:inline-block;padding:4px'>"
+            "<input id=c type=checkbox style='position:absolute;left:4px;top:4px'>"
+            "<span style='position:absolute;left:0;top:0;width:24px;height:24px;background:#36c'></span>"
+            "<span style='margin-left:30px'>I agree to the terms</span></label>",
+            {"target": 'checkbox "I agree to the terms"', "name": "Terms", "value": True})
+        self.assertIn("[true,", state.replace(" ", ""), reply + state)
+        self.assertNotIn("script", state, reply + state)
+        self.assertTrue(self.line(reply, "Terms").startswith("ok"), reply)
+
+    def test_H2_box_under_an_overlay_is_left_alone(self):
+        """A box covered by something else and no label to click: no person can tick it; the tool says so."""
+        reply, state = self.human(
+            "<input id=c type=checkbox aria-label='Subscribe'>"
+            "<div style='position:fixed;inset:0;background:rgba(0,0,0,.3)'></div>",
+            {"target": 'checkbox "Subscribe"', "name": "Subscribe", "value": True})
+        self.assertIn("[false,", state.replace(" ", ""), reply + state)
+        self.assertNotIn("script", state, reply + state)
+        self.assertFalse(self.line(reply, "Subscribe").startswith("ok"), reply)
+
+    def test_H3_covered_option_in_a_group_is_not_chosen_by_script(self):
+        """A radio group whose options are drawn over: choosing one goes through its label or not at all."""
+        reply, state = self.human(
+            "<fieldset><legend>Relocate?</legend>"
+            "<input type=radio name=r id=c aria-label='Yes'><input type=radio name=r id=n aria-label='No'></fieldset>"
+            "<div style='position:fixed;inset:0;background:rgba(0,0,0,.3)'></div>",
+            lambda s: {"target": ref(s, "group", "Relocate?"), "name": "Relocate", "value": "Yes"})
+        self.assertIn("[false,", state.replace(" ", ""), reply + state)
+        self.assertNotIn("script", state, reply + state)
+        self.assertFalse(self.line(reply, "Relocate").startswith("ok"), reply)
 
 if __name__ == "__main__":
     unittest.main()

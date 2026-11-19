@@ -82,13 +82,16 @@ def script(base):
 def normalize(text, port):
     text = re.sub(r"\d{4}-\d\d-\d\dT\d\d-\d\d-\d\d-\d{3}Z", "TIME", text)
     text = re.sub(r"\[\s*\d+ms\]", "[Tms]", text)
+    # a timeout names the function that called Playwright, which a wrapping layer changes; the rest must match
+    text = re.sub(r"^(TimeoutError: )[\w.]+: ", r"\1", text, flags=re.M)
     return text.replace(str(port), "PORT")
 
 
 async def run_server(argv, base, port, tmp):
     from mcp import ClientSession
     from mcp.client.stdio import StdioServerParameters, stdio_client
-    server = StdioServerParameters(command=argv[0], args=argv[1:], cwd=tmp)
+    server = StdioServerParameters(command=argv[0], args=argv[1:], cwd=tmp,
+                                   env={**os.environ, "FORMWRIGHT_PAGE_CODE": "1"})
     out, snap = [], ""
     async with stdio_client(server) as (read, write):
         async with ClientSession(read, write) as client:
@@ -160,6 +163,59 @@ class SameAsPlaywrightMCP(unittest.TestCase):
         diffs = self.differing(self.serve(pwmcp.command(*OPTS)))
         self.assertFalse(set(diffs) - known, "\n\n".join(v for i, v in diffs.items() if i not in known))
 
+
+# a page that mirrors what is typed into the value attribute, with the password box lying over the button
+COVERED = ("data:text/html,<div style='position:relative'><button>Create Account</button>"
+           "<input type=password aria-label=Password oninput=\"this.setAttribute('value',this.value)\" "
+           "style='position:absolute;inset:0'></div>")
+
+
+async def secret_in_failed_click(argv, tmp):
+    """Types the secret into a password box, then clicks a covered button until it times out; the error's reply."""
+    from mcp import ClientSession
+    from mcp.client.stdio import StdioServerParameters, stdio_client
+    async with stdio_client(StdioServerParameters(command=argv[0], args=argv[1:], cwd=tmp)) as (read, write):
+        async with ClientSession(read, write) as client:
+            await client.initialize()
+            await client.call_tool("browser_navigate", {"url": COVERED})
+            snap = "\n".join(c.text for c in (await client.call_tool("browser_snapshot", {})).content if c.type == "text")
+            await client.call_tool("browser_type", {"target": ref(snap, r'textbox "Password"'), "text": "SITE_PASSWORD"})
+            res = await client.call_tool("browser_click", {"target": ref(snap, r'button "Create Account"')})
+            return bool(res.is_error), "\n".join(c.text for c in res.content if c.type == "text")
+
+
+@unittest.skipUnless(os.environ.get("FORMWRIGHT_BROWSER_TESTS") == "1", "needs a browser: FORMWRIGHT_BROWSER_TESTS=1")
+class SecretsStayHidden(unittest.TestCase):
+    def test_failed_action_reply_hides_typed_secret(self):
+        pw = 'Zq7&"secret<x>'
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "secrets.env").write_text(f"SITE_PASSWORD='{pw}'\n")
+            argv = pwmcp.command(*OPTS, "--secrets", "secrets.env", "--timeout-action", "1500")
+            err, text = asyncio.run(secret_in_failed_click(argv, tmp))
+        print(text)
+        self.assertTrue(err, "the covered click should fail")
+        for form in (pw, 'Zq7&amp;&quot;secret&lt;x&gt;', 'Zq7&amp;"secret&lt;x&gt;', 'Zq7&\\"secret<x>', 'Zq7'):
+            self.assertNotIn(form, text)
+
+
+@unittest.skipUnless(os.environ.get("FORMWRIGHT_BROWSER_TESTS") == "1", "needs a browser: FORMWRIGHT_BROWSER_TESTS=1")
+class OnlyPersonTools(unittest.TestCase):
+    def test_no_tool_runs_code_in_the_page(self):
+        """No tool whose clicks and events no person could make."""
+        async def names(tmp):
+            from mcp import ClientSession
+            from mcp.client.stdio import StdioServerParameters, stdio_client
+            argv = pwmcp.command(*OPTS)
+            env = {k: v for k, v in os.environ.items() if k != "FORMWRIGHT_PAGE_CODE"}
+            async with stdio_client(StdioServerParameters(command=argv[0], args=argv[1:], cwd=tmp, env=env)) as (r, w):
+                async with ClientSession(r, w) as c:
+                    await c.initialize()
+                    return [t.name for t in (await c.list_tools()).tools]
+        with tempfile.TemporaryDirectory() as tmp:
+            got = asyncio.run(names(tmp))
+        self.assertIn("browser_click", got)
+        for name in ("browser_evaluate", "browser_run_code_unsafe", "browser_webmcp_call"):
+            self.assertNotIn(name, got)
 
 if __name__ == "__main__":
     unittest.main()

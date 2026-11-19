@@ -443,8 +443,9 @@ class Field {
     this.alive();
     if (await capped(el.evaluate(DISABLED), 'reading the page').catch(() => false))
       throw new Error(`the page marks ${JSON.stringify(await el.evaluate(e => (e.innerText || e.getAttribute('aria-label') || e.tagName).replace(/\s+/g, ' ').trim().slice(0, 60)).catch(() => 'it'))} disabled; not clicked`);
+    // only a person's click: on screen, on top, enabled; never a click fired from a page script
     try { await el.click({ timeout: ACTION_MS }); return 'click'; }
-    catch { await capped(el.evaluate(e => e.click()), 'clicking'); return 'DOM click'; }
+    catch (e) { throw new Error(`can't be clicked on screen (${shortWhy(e)}); not clicked`); }
   }
   async poll(before, want, ms = 4000) {
     const t0 = Date.now(); let last = null, same = 0, items = [];
@@ -634,14 +635,33 @@ async function fillCheck(f, value) {
   }
   if (rb.checked === want) { f.did.push(`already ${want ? 'ticked' : 'not ticked'}`); return { verdict: 'yes', rb, check: r => agrees(r, want) }; }
   try { await (await f.target()).setChecked(want, { timeout: ACTION_MS }); f.did.push(want ? 'ticked it' : 'unticked it'); }
-  catch {
-    // hidden real box behind a styled stand-in: a DOM click toggles it and fires the page's own handlers
-    await f.ev(e => e.click());
-    f.did.push(`${want ? 'ticked' : 'unticked'} it with a DOM click (the box itself can't be clicked on screen)`);
+  catch (e) {
+    // the real box hidden behind a styled stand-in: a person clicks what is drawn, its label
+    if (!await clickLabel(f, await f.el())) {
+      f.did.push(`the box can't be clicked on screen and has no visible label (${shortWhy(e)}); touched nothing`);
+      return { verdict: 'no', rb, check: () => 'no' };
+    }
+    f.did.push(`${want ? 'ticked' : 'unticked'} it by clicking its label (the box itself can't be clicked on screen)`);
   }
   await f.settle();
   rb = await f.read();
   return { verdict: agrees(rb, want), rb, check: r => agrees(r, want) };
+}
+
+// The first line of a Playwright failure: why the action didn't happen (covered, hidden, disabled, timed out).
+function shortWhy(e) {
+  return String(e?.message || e).split('\n').find(l => l.trim() && !/^\s*(Call log|=+)/.test(l))?.trim().slice(0, 160) || 'failed';
+}
+
+// Click a box's visible label, a person's way of ticking a box drawn over by its own styling. False when none shows.
+async function clickLabel(f, el) {
+  const lab = (await el.evaluateHandle(e => [...(e.labels || [])].find(l => {
+    const r = l.getBoundingClientRect(); return r.width > 0 && r.height > 0 && getComputedStyle(l).visibility !== 'hidden';
+  }) || null).catch(() => null))?.asElement();
+  if (!lab) return false;
+  try { await lab.click({ timeout: ACTION_MS }); } catch { return false; }
+  await f.settle();
+  return true;
 }
 
 async function fillGroup(f, value) {
@@ -664,7 +684,8 @@ async function fillGroup(f, value) {
     const it = items.find(i => i.text === m.pick);
     if (it.checked) { f.did.push(`${JSON.stringify(m.pick)} already chosen`); continue; }
     if (it.off) { misses.push(w); f.did.push(`the page marks ${JSON.stringify(m.pick)} disabled; not chosen`); continue; }
-    try { await el.check({ timeout: ACTION_MS }); } catch { await el.evaluate(e => e.click()); }
+    try { await el.check({ timeout: ACTION_MS }); }
+    catch (e) { if (!await clickLabel(f, el)) { misses.push(w); f.did.push(`${JSON.stringify(m.pick)} can't be clicked on screen (${shortWhy(e)}); not chosen`); continue; } }
     f.did.push(`chose ${JSON.stringify(m.pick)}`);
     await f.settle();
   }
@@ -673,7 +694,8 @@ async function fillGroup(f, value) {
     for (const it of now.filter(i => i.checked && !wants.some(w => match(w, [i.text]).pick))) {
       if (it.off) { f.did.push(`${JSON.stringify(it.text)} is ticked and disabled; left it`); continue; }
       const el = await f.evh(GROUP_ITEMS, it.text);
-      try { await el.uncheck({ timeout: ACTION_MS }); } catch { await el.evaluate(e => e.click()); }
+      try { await el.uncheck({ timeout: ACTION_MS }); }
+      catch (e) { if (!await clickLabel(f, el)) { f.did.push(`${JSON.stringify(it.text)} can't be clicked on screen (${shortWhy(e)}); left it`); continue; } }
       f.did.push(`unticked ${JSON.stringify(it.text)}`);
     }
   }
@@ -704,14 +726,9 @@ async function fillSelect(f, value) {
   }
   if (picks.length) {
     dbg('selectOption', JSON.stringify(picks));
-    // the DOM way when there is no locator for the control itself (what the page's own handlers see)
-    const t = await f.target();
-    if (t === f.loc) await t.selectOption(picks.map(label => ({ label })), { timeout: ACTION_MS });
-    else await f.ev((e, want) => {
-      for (const o of e.options) o.selected = want.includes(o.text.replace(/\s+/g, ' ').trim());
-      e.dispatchEvent(new Event('input', { bubbles: true }));
-      e.dispatchEvent(new Event('change', { bubbles: true }));
-    }, picks);
+    // the browser's own option picking, as from the list a person opens; never events fired from a page script
+    const t = f.loc || await f.el();
+    await t.selectOption(picks.map(label => ({ label })), { timeout: ACTION_MS });
     dbg('selected');
     f.did.push(`selected ${picks.map(p => JSON.stringify(p)).join(', ')}`);
     await f.settle();
@@ -885,12 +902,14 @@ async function fillChoice(f, value) {
   return { verdict: check(rb), rb, check };
 }
 
-// The one field with this label (exact, else containing it); null when none or several have it (rows of a list
-// share their labels: then only the snapshot's ref can tell them apart).
+// The one field with this label (exact; else the same words with only marks such as a required "*" around them;
+// else containing it); null when none or several have it (rows of a list share their labels: then only the
+// snapshot's ref can tell them apart).
 async function byLabel(page, labels) {
   for (const n of labels.filter(Boolean)) {
-    for (const exact of [true, false]) {
-      const l = page.getByLabel(n, { exact }).and(page.locator(
+    const words = new RegExp('^[^\\p{L}\\p{N}]*' + n.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[^\\p{L}\\p{N}]*$', 'iu');
+    for (const how of [{ exact: true }, { words }, { exact: false }]) {
+      const l = page.getByLabel(how.words || n, how.words ? {} : how).and(page.locator(
         'input:not([type=hidden]),select,textarea,[role=combobox],[role=textbox],[role=checkbox],[role=radio],[role=switch],[role=radiogroup],fieldset,[contenteditable=true]'));
       const k = await l.count().catch(() => 0);
       if (k === 1) return l;

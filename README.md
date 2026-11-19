@@ -14,6 +14,10 @@ shows.
 
 Same accuracy at about half the cost. Most of the saving comes from long forms with many dropdowns.
 
+Long runs can also continue in fresh agent sessions on the same browser, carrying an action record and searchable
+history. On the long-form benchmark this reduced mean model cost by about 60% versus one uninterrupted session.
+See [results and reproduction commands](BENCHMARKS.md) for the separate comparisons.
+
 ## Use
 
 ```bash

@@ -6,6 +6,9 @@ __pycache__/
 build/
 dist/
 *.log
+.playwright/
+.playwright-cli/
+.playwright-mcp/
 bench/runs/
 bench/site/node_modules/
 bench/site/dist/
